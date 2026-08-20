@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum VehicleType {
+  MOTORCYCLE
+  CAR
+  BICYCLE
+}
+
+enum CaptainStatus {
+  PENDING
+  ACTIVE
+  BLOCKED
+}
+
+model Captain {
+  id     String @id @default(uuid())
+  name   String
+  phone  String @unique
+  gender Gender
+
+  nationalIdImage String
+  licenseImage    String
+
+  vehicleNumber String      @unique
+  vehicleType   VehicleType
+  vehicleModel  String
+
+  amountDue Decimal       @default(0) @db.Decimal(10, 2)
+  status    CaptainStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
