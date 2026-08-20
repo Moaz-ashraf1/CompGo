@@ -7,6 +7,7 @@ datasource db {
   provider = "postgresql"
 }
 
+
 enum Gender {
   MALE
   FEMALE
@@ -25,21 +26,21 @@ enum CaptainStatus {
 }
 
 model Captain {
-  id     String @id @default(uuid())
-  name   String
-  phone  String @unique
-  gender Gender
+  id              String        @id @default(uuid())
+  name            String
+  phone           String        @unique
+  gender          Gender
 
   nationalIdImage String
   licenseImage    String
 
-  vehicleNumber String      @unique
-  vehicleType   VehicleType
-  vehicleModel  String
+  vehicleNumber   String        @unique
+  vehicleType     VehicleType
+  vehicleModel    String
 
-  amountDue Decimal       @default(0) @db.Decimal(10, 2)
-  status    CaptainStatus @default(PENDING)
+  amountDue       Decimal       @default(0) @db.Decimal(10, 2)
+  status          CaptainStatus @default(ACTIVE)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
