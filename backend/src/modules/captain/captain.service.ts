@@ -1,29 +1,64 @@
-import type { CreateCaptainDto } from "./dto/create-captain.dto.js";
-import {
-  createCaptain,
-  findCaptainByPhone,
-  findCaptainByVehicleNumber,
-} from "./captain.repo.js";
+import * as captainRepo from "./captain.repository.js";
+import * as captainExceptions from "../../exceptions/captain.exceptions.js";
+import type { CreateCaptainDto } from "./captain.validation.js";
+import { CaptainStatus } from "../../generated/prisma/client.js";
 
 export const registerCaptain = async (data: CreateCaptainDto) => {
-  const existingCaptainByPhone = await findCaptainByPhone(data.phone);
+  const existingCaptainByPhone = await captainRepo.findCaptainByPhone(data.phone);
 
   if (existingCaptainByPhone) {
-    const error = new Error("Phone number is already registered") as any;
-    error.statusCode = 409;
-    throw error;
+    throw new captainExceptions.CaptainAlreadyExistsException(
+      "Captain with this phone number already exists"
+    );
   }
 
-  const existingCaptainByVehicleNumber =
-    await findCaptainByVehicleNumber(data.vehicleNumber);
+  const existingCaptainByVehicle =
+    await captainRepo.findCaptainByVehicleNumber(data.vehicleNumber);
 
-  if (existingCaptainByVehicleNumber) {
-    const error = new Error("Vehicle number is already registered") as any;
-    error.statusCode = 409;
-    throw error;
+  if (existingCaptainByVehicle) {
+    throw new captainExceptions.CaptainAlreadyExistsException(
+      "Captain with this vehicle number already exists"
+    );
   }
 
-  const captain = await createCaptain(data);
+  return captainRepo.createCaptain(data);
+};
+
+
+export const getAllCaptains = async () => {
+  return captainRepo.findAllCaptains();
+};
+
+export const getCaptainById = async (id: string) => {
+  const captain = await captainRepo.findCaptainById(id);
+
+  if (!captain) {
+    throw new captainExceptions.CaptainNotFoundException();
+  }
 
   return captain;
+};
+
+export const blockCaptain = async (id: string) => {
+  const captain = await captainRepo.findCaptainById(id);
+
+  if (!captain) {
+    throw new captainExceptions.CaptainNotFoundException();
+  }
+
+  if (captain.status === CaptainStatus.BLOCKED) {
+    return captain;
+  }
+
+  return captainRepo.updateCaptainStatus(id, CaptainStatus.BLOCKED);
+};
+
+export const resetAmountDue = async (id: string) => {
+  const captain = await captainRepo.findCaptainById(id);
+
+  if (!captain) {
+    throw new captainExceptions.CaptainNotFoundException();
+  }
+
+  return captainRepo.resetCaptainAmountDue(id);
 };

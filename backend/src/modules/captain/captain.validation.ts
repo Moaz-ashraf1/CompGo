@@ -37,4 +37,4 @@ export const createCaptainSchema = z.object({
     .max(100),
 });
 
-export type CreateCaptainInput = z.infer<typeof createCaptainSchema>;
+export type CreateCaptainDto = z.infer<typeof createCaptainSchema>;
