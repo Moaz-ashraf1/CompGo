@@ -4,7 +4,7 @@ import {
   Gender,
   VehicleType,
   CaptainStatus,
-} from "../src/generated/prisma/client";
+} from "../src/generated/prisma/client.js";
 
 import { PrismaPg } from "@prisma/adapter-pg";
 

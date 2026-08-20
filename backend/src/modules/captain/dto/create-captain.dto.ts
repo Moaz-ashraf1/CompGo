@@ -1,4 +1,4 @@
-import { Gender, VehicleType } from "../../../generated/prisma/client";
+import { Gender, VehicleType } from "../../../generated/prisma/client.js";
 
 export interface CreateCaptainDto {
   name: string;
