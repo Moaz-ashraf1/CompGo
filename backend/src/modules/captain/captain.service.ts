@@ -24,7 +24,6 @@ export const registerCaptain = async (data: CreateCaptainDto) => {
   return captainRepo.createCaptain(data);
 };
 
-
 export const getAllCaptains = async () => {
   return captainRepo.findAllCaptains();
 };
@@ -51,6 +50,20 @@ export const blockCaptain = async (id: string) => {
   }
 
   return captainRepo.updateCaptainStatus(id, CaptainStatus.BLOCKED);
+};
+
+export const unblockCaptain = async (id: string) => {
+  const captain = await captainRepo.findCaptainById(id);
+
+  if (!captain) {
+    throw new captainExceptions.CaptainNotFoundException();
+  }
+
+  if (captain.status === CaptainStatus.ACTIVE) {
+    return captain;
+  }
+
+  return captainRepo.updateCaptainStatus(id, CaptainStatus.ACTIVE);
 };
 
 export const resetAmountDue = async (id: string) => {
