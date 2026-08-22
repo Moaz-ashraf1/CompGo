@@ -4,6 +4,7 @@ import {
   Gender,
   VehicleType,
   CaptainStatus,
+  
 } from "../src/generated/prisma/client.js";
 
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -54,12 +55,27 @@ async function main() {
       status: statuses[index % statuses.length],
     };
   });
+await prisma.captain.createMany({
+  data: captains,
+  skipDuplicates: true,
+});
 
-  await prisma.captain.createMany({
-    data: captains,
-  });
+console.log('1000 captains created successfully.');
 
-  console.log('1000 captains created successfully.');
+await prisma.compoundBoundary.deleteMany({});
+await prisma.compoundBoundary.create({
+  data: {
+    points: [
+      { lat: 30.0131, lng: 31.2089 },
+      { lat: 30.0131, lng: 31.2189 },
+      { lat: 30.0031, lng: 31.2189 },
+      { lat: 30.0031, lng: 31.2089 },
+      { lat: 30.0131, lng: 31.2089 },
+    ],
+  },
+});
+
+console.log("Compound boundary seeded.");
 }
 
 main()

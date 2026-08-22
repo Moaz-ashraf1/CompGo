@@ -44,3 +44,9 @@ model Captain {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 }
+
+model CompoundBoundary{
+  id          String     @id @default(uuid())
+  points      Json 
+  updatedAt   DateTime   @updatedAt
+}
