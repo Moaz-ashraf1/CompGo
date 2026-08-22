@@ -50,3 +50,12 @@ model CompoundBoundary{
   points      Json 
   updatedAt   DateTime   @updatedAt
 }
+
+model PricingConfig {
+  id                       String   @id @default(uuid())
+  rideInsideCompoundPrice  Decimal  @db.Decimal(10, 2)
+  rideOutsidePricePerKm    Decimal  @db.Decimal(10, 2)
+  orderInsideCompoundPrice Decimal  @db.Decimal(10, 2)
+  airportPrice             Decimal  @db.Decimal(10, 2)
+  updatedAt                DateTime @updatedAt
+}

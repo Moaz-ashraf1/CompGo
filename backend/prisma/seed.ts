@@ -76,6 +76,18 @@ await prisma.compoundBoundary.create({
 });
 
 console.log("Compound boundary seeded.");
+
+
+await prisma.pricingConfig.create({
+  data: {
+    rideInsideCompoundPrice: 35,
+    rideOutsidePricePerKm: 5,
+    orderInsideCompoundPrice: 30,
+    airportPrice: 280,
+  },
+});
+
+console.log("Pricing config seeded.");
 }
 
 main()
