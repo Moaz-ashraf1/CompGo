@@ -7,7 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-
 enum Gender {
   MALE
   FEMALE
@@ -19,36 +18,60 @@ enum VehicleType {
   BICYCLE
 }
 
-enum CaptainStatus {
-  PENDING
+enum ClientStatus {
   ACTIVE
   BLOCKED
 }
 
-model Captain {
-  id              String        @id @default(uuid())
-  name            String
-  phone           String        @unique
-  gender          Gender
-
-  nationalIdImage String
-  licenseImage    String
-
-  vehicleNumber   String        @unique
-  vehicleType     VehicleType
-  vehicleModel    String
-
-  amountDue       Decimal       @default(0) @db.Decimal(10, 2)
-  status          CaptainStatus @default(ACTIVE)
-
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+enum CaptainStatus {
+  ACTIVE
+  BLOCKED
 }
 
-model CompoundBoundary{
-  id          String     @id @default(uuid())
-  points      Json 
-  updatedAt   DateTime   @updatedAt
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String   @unique
+  gender    Gender
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client  Client?
+  captain Captain?
+}
+
+model Client {
+  id           String       @id @default(uuid())
+  userId       String       @unique
+  passwordHash String
+  status       ClientStatus @default(ACTIVE)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Captain {
+  id              String        @id @default(uuid())
+  userId          String        @unique
+  passwordHash    String
+  nationalIdImage String
+  licenseImage    String
+  vehicleNumber    String        @unique
+  vehicleType     VehicleType
+  vehicleModel    String
+  amountDue       Decimal       @default(0) @db.Decimal(10, 2)
+  status          CaptainStatus @default(ACTIVE)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model CompoundBoundary {
+  id        String   @id @default(uuid())
+  points    Json
+  updatedAt DateTime @updatedAt
 }
 
 model PricingConfig {
