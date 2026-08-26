@@ -15,3 +15,12 @@ export const registerClient = asyncHandler(
     });
   },
 );
+
+export const loginClient = asyncHandler(async (req: Request, res: Response) => {
+  const result = await authService.loginClient(req.body);
+
+  res.status(StatusCodes.OK).json({
+    status: "success",
+    data: result,
+  });
+});

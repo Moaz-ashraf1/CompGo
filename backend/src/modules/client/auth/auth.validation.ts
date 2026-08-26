@@ -12,4 +12,12 @@ export const registerClientSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
+export const loginClientSchema = z.object({
+  phone: z
+    .string()
+    .regex(/^01[0125][0-9]{8}$/, "Invalid Egyptian phone number"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
 export type RegisterClientDTO = z.infer<typeof registerClientSchema>;
+export type LoginClientDTO = z.infer<typeof loginClientSchema>;

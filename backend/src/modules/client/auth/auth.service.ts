@@ -1,7 +1,8 @@
-import type { RegisterClientDTO } from "./auth.validation.js";
+import type { LoginClientDTO, RegisterClientDTO } from "./auth.validation.js";
 import * as authRepo from "./auth.repository.js";
-import { hashPassword } from "../../../utils/hash.js";
+import { comparePassword, hashPassword } from "../../../utils/hash.js";
 import { ClientAlreadyExistsError } from "../../../exceptions/auth.exceptions.js";
+import { InvalidCredentialsError } from "../../../exceptions/client.exceptions.js";
 
 export const registerClient = async (data: RegisterClientDTO) => {
   const existingUser = await authRepo.findUserByPhone(data.phone);
@@ -40,5 +41,23 @@ export const registerClient = async (data: RegisterClientDTO) => {
     phone: existingUser.phone,
     gender: existingUser.gender,
     accountType: "CLIENT",
+  };
+};
+
+export const loginClient = async (data: LoginClientDTO) => {
+  const user = await authRepo.findUserByPhoneWithClient(data.phone);
+  if (!user || !user.client) throw new InvalidCredentialsError();
+
+  const isPasswordValid = await comparePassword(
+    data.password,
+    user.client.passwordHash,
+  );
+
+  if (!isPasswordValid || user.client.status === "BLOCKED")
+    throw new InvalidCredentialsError();
+
+  return {
+    userId: user.id,
+    clientId: user.client.id,
   };
 };

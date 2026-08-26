@@ -47,3 +47,14 @@ export const createClientForExistingUser = async (
     },
   });
 };
+
+export const findUserByPhoneWithClient = async (phone: string) => {
+  return prisma.user.findUnique({
+    where: {
+      phone,
+    },
+    include: {
+      client: true,
+    },
+  });
+};
