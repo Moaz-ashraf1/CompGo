@@ -28,6 +28,29 @@ enum CaptainStatus {
   BLOCKED
 }
 
+enum AccountRole {
+  CLIENT
+  CAPTAIN
+}
+
+model RefreshToken {
+  id        String      @id @default(uuid())
+  userId    String
+  role      AccountRole
+  tokenHash String      @unique
+  familyId  String
+  deviceId  String
+  ipAddress String
+  revoked   Boolean     @default(false)
+  expiresAt DateTime
+  createdAt DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([familyId])
+}
+
 model User {
   id        String   @id @default(uuid())
   name      String
@@ -38,6 +61,7 @@ model User {
 
   client  Client?
   captain Captain?
+  refreshToken RefreshToken[]
 }
 
 model Client {
@@ -82,3 +106,5 @@ model PricingConfig {
   airportPrice             Decimal  @db.Decimal(10, 2)
   updatedAt                DateTime @updatedAt
 }
+
+

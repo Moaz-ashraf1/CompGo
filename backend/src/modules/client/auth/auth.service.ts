@@ -3,6 +3,7 @@ import * as authRepo from "./auth.repository.js";
 import { comparePassword, hashPassword } from "../../../utils/hash.js";
 import { ClientAlreadyExistsError } from "../../../exceptions/auth.exceptions.js";
 import { InvalidCredentialsError } from "../../../exceptions/client.exceptions.js";
+import * as authService from "../../auth/auth.service.js";
 
 export const registerClient = async (data: RegisterClientDTO) => {
   const existingUser = await authRepo.findUserByPhone(data.phone);
@@ -44,7 +45,10 @@ export const registerClient = async (data: RegisterClientDTO) => {
   };
 };
 
-export const loginClient = async (data: LoginClientDTO) => {
+export const loginClient = async (
+  data: LoginClientDTO,
+  meta: { deviceId: string; ipAddress: string },
+) => {
   const user = await authRepo.findUserByPhoneWithClient(data.phone);
   if (!user || !user.client) throw new InvalidCredentialsError();
 
@@ -56,8 +60,17 @@ export const loginClient = async (data: LoginClientDTO) => {
   if (!isPasswordValid || user.client.status === "BLOCKED")
     throw new InvalidCredentialsError();
 
+  const { accessToken, refreshToken } = await authService.issueTokenPair({
+    userId: user.id,
+    role: "CLIENT",
+    deviceId: meta.deviceId,
+    ipAddress: meta.ipAddress,
+  });
+
   return {
     userId: user.id,
     clientId: user.client.id,
+    accessToken,
+    refreshToken,
   };
 };

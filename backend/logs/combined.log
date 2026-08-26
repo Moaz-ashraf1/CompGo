@@ -94,3 +94,38 @@
 {"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T04:41:50.639Z"}
 {"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T04:44:13.485Z"}
 {"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T04:44:13.496Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:24:39.168Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:24:39.186Z"}
+{"level":"error","message":"Unhandled error secretOrPrivateKey must have a value","method":"POST","name":"Error","stack":"Error: secretOrPrivateKey must have a value\n    at module.exports [as sign] (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\jsonwebtoken\\sign.js:111:20)\n    at generateAccessToken (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\utils\\jwt.ts:15:14)\n    at Module.issueTokenPair (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\modules\\auth\\auth.service.ts:26:23)\n    at Module.loginClient (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\modules\\client\\auth\\auth.service.ts:63:59)\n    at async <anonymous> (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\modules\\client\\auth\\auth.controller.ts:28:18)","timestamp":"2026-08-26T06:25:20.451Z","url":"/clientapi/v1/auth/login"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:28:16.685Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:28:16.697Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:34:32.191Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:34:32.198Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:35:01.222Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:35:01.233Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:35:55.510Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:35:55.522Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:36:11.360Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:36:11.369Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:36:29.658Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:36:29.669Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:36:56.311Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:36:56.321Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:37:07.228Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:37:07.239Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:37:16.212Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:37:16.220Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:38:07.983Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:38:07.992Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:38:22.277Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:38:22.289Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:39:00.076Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:39:00.085Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:39:26.696Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:39:26.705Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:39:34.149Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:39:34.159Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:39:43.560Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:39:43.569Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-26T06:40:26.324Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-26T06:40:26.333Z"}

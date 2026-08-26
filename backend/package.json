@@ -20,6 +20,7 @@
     "express": "^5.2.1",
     "express-async-handler": "^1.2.0",
     "http-status-codes": "^2.3.0",
+    "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.0",
     "prisma": "^7.9.1",
     "winston": "^3.19.0",
@@ -28,6 +29,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.2.0",
     "nodemon": "^3.1.14",
     "ts-node-dev": "^2.0.0",

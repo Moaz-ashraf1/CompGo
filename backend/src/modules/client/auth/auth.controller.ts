@@ -17,7 +17,18 @@ export const registerClient = asyncHandler(
 );
 
 export const loginClient = asyncHandler(async (req: Request, res: Response) => {
-  const result = await authService.loginClient(req.body);
+  const deviceId = req.headers["x-device-id"] as string;
+  if (typeof deviceId !== "string") {
+    res.status(StatusCodes.BAD_REQUEST).json({
+      status: "fail",
+      message: "x-device-id header is required",
+    });
+    return;
+  }
+  const result = await authService.loginClient(req.body, {
+    deviceId,
+    ipAddress: req.ip ?? "unknown",
+  });
 
   res.status(StatusCodes.OK).json({
     status: "success",
