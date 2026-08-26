@@ -1,13 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
 import { StatusCodes } from "http-status-codes";
 import { AppException } from "../exceptions/AppException.js";
-import { logger } from './../config/logger.js';
+import { logger } from "./../config/logger.js";
 
 const globalErrorHandler = (
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   logger.error("Unhandled error", {
     message: err.message,
@@ -19,6 +19,27 @@ const globalErrorHandler = (
 
   if (err instanceof AppException) {
     return res.status(err.statusCode).json({
+      status: "error",
+      message: err.message,
+    });
+  }
+
+  if (err.name === "JsonWebTokenError") {
+    return res.status(StatusCodes.UNAUTHORIZED).json({
+      status: "error",
+      message: "Invalid token, please login again",
+    });
+  }
+
+  if (err.name === "TokenExpiredError") {
+    return res.status(StatusCodes.UNAUTHORIZED).json({
+      status: "error",
+      message: "Token expired, please login again",
+    });
+  }
+
+  if ("statusCode" in err) {
+    return res.status((err as any).statusCode).json({
       status: "error",
       message: err.message,
     });

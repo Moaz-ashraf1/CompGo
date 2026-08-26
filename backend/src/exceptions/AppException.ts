@@ -5,7 +5,7 @@ export class AppException extends Error {
 
   constructor(
     message: string,
-    statusCode: number = StatusCodes.INTERNAL_SERVER_ERROR
+    statusCode: number = StatusCodes.INTERNAL_SERVER_ERROR,
   ) {
     super(message);
 
