@@ -6,3 +6,9 @@ export class InvalidCredentialsError extends AppException {
     super("Invalid credentials", StatusCodes.UNAUTHORIZED);
   }
 }
+
+export class PhoneAlreadyInUseError extends AppException {
+  constructor(message = "This phone number is already in use") {
+    super(message, StatusCodes.CONFLICT);
+  }
+}
