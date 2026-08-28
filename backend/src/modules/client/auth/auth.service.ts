@@ -1,46 +1,31 @@
 import type { LoginClientDTO, RegisterClientDTO } from "./auth.validation.js";
 import * as authRepo from "./auth.repository.js";
+import * as authService from "../../auth/auth.service.js";
 import { comparePassword, hashPassword } from "../../../utils/hash.js";
 import { ClientAlreadyExistsError } from "../../../exceptions/auth.exceptions.js";
 import { InvalidCredentialsError } from "../../../exceptions/client.exceptions.js";
-import * as authService from "../../auth/auth.service.js";
 
 export const registerClient = async (data: RegisterClientDTO) => {
-  const existingUser = await authRepo.findUserByPhone(data.phone);
+  const existingClient = await authRepo.findClientByPhone(data.phone);
 
-  if (existingUser?.client) {
+  if (existingClient) {
     throw new ClientAlreadyExistsError();
   }
 
   const passwordHash = await hashPassword(data.password);
 
-  if (!existingUser) {
-    const user = await authRepo.createUserWithClient({
-      name: data.name,
-      phone: data.phone,
-      gender: data.gender,
-      passwordHash,
-    });
-
-    return {
-      id: user.id,
-      name: user.name,
-      phone: user.phone,
-      gender: user.gender,
-      accountType: "CLIENT",
-    };
-  }
-
-  const client = await authRepo.createClientForExistingUser(
-    existingUser.id,
+  const client = await authRepo.createClient({
+    name: data.name,
+    phone: data.phone,
+    gender: data.gender,
     passwordHash,
-  );
+  });
 
   return {
-    id: existingUser.id,
-    name: existingUser.name,
-    phone: existingUser.phone,
-    gender: existingUser.gender,
+    id: client.id,
+    name: client.name,
+    phone: client.phone,
+    gender: client.gender,
     accountType: "CLIENT",
   };
 };
@@ -49,27 +34,26 @@ export const loginClient = async (
   data: LoginClientDTO,
   meta: { deviceId: string; ipAddress: string },
 ) => {
-  const user = await authRepo.findUserByPhoneWithClient(data.phone);
-  if (!user || !user.client) throw new InvalidCredentialsError();
+  const client = await authRepo.findClientByPhone(data.phone);
+  if (!client) throw new InvalidCredentialsError();
 
   const isPasswordValid = await comparePassword(
     data.password,
-    user.client.passwordHash,
+    client.passwordHash,
   );
 
-  if (!isPasswordValid || user.client.status === "BLOCKED")
+  if (!isPasswordValid || client.status === "BLOCKED")
     throw new InvalidCredentialsError();
 
   const { accessToken, refreshToken } = await authService.issueTokenPair({
-    userId: user.id,
+    accountId: client.id,
     role: "CLIENT",
     deviceId: meta.deviceId,
     ipAddress: meta.ipAddress,
   });
 
   return {
-    userId: user.id,
-    clientId: user.client.id,
+    clientId: client.id,
     accessToken,
     refreshToken,
   };

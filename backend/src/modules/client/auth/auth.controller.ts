@@ -9,15 +9,14 @@ export const registerClient = asyncHandler(
 
     res.status(StatusCodes.CREATED).json({
       status: "success",
-      data: {
-        client,
-      },
+      data: { client },
     });
   },
 );
 
 export const loginClient = asyncHandler(async (req: Request, res: Response) => {
-  const deviceId = req.headers["x-device-id"] as string;
+  const deviceId = req.headers["x-device-id"];
+
   if (typeof deviceId !== "string") {
     res.status(StatusCodes.BAD_REQUEST).json({
       status: "fail",
@@ -25,6 +24,7 @@ export const loginClient = asyncHandler(async (req: Request, res: Response) => {
     });
     return;
   }
+
   const result = await authService.loginClient(req.body, {
     deviceId,
     ipAddress: req.ip ?? "unknown",

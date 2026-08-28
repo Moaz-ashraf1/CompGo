@@ -27,7 +27,6 @@ const statuses = [
   CaptainStatus.ACTIVE,
 ];
 
-
 const SEED_PASSWORD = "Password123!";
 
 async function main() {
@@ -37,53 +36,35 @@ async function main() {
     const number = index + 1;
 
     return {
-      user: {
-        name: `Captain ${number}`,
-        phone: `0100000${String(number).padStart(4, "0")}`,
-        gender: number % 2 === 0 ? Gender.MALE : Gender.FEMALE,
-      },
-      captain: {
-        passwordHash,
-        nationalIdImage: `https://example.com/national-id/${number}.jpg`,
-        licenseImage: `https://example.com/license/${number}.jpg`,
-        vehicleNumber: `COMP-${String(number).padStart(4, "0")}`,
-        vehicleType: vehicleTypes[index % vehicleTypes.length],
-        vehicleModel:
-          number % 3 === 0
-            ? "Toyota Corolla 2022"
-            : number % 3 === 1
-              ? "Honda 2023"
-              : "Mountain Bike",
-        amountDue: Math.floor(Math.random() * 1000),
-        status: statuses[index % statuses.length],
-      },
+      name: `Captain ${number}`,
+      phone: `0100000${String(number).padStart(4, "0")}`,
+      gender: number % 2 === 0 ? Gender.MALE : Gender.FEMALE,
+      passwordHash,
+      nationalIdImage: `https://example.com/national-id/${number}.jpg`,
+      licenseImage: `https://example.com/license/${number}.jpg`,
+      vehicleNumber: `COMP-${String(number).padStart(4, "0")}`,
+      vehicleType: vehicleTypes[index % vehicleTypes.length],
+      vehicleModel:
+        number % 3 === 0
+          ? "Toyota Corolla 2022"
+          : number % 3 === 1
+            ? "Honda 2023"
+            : "Mountain Bike",
+      amountDue: Math.floor(Math.random() * 1000),
+      status: statuses[index % statuses.length],
     };
   });
 
-  // createMany can't create nested relations in one call, so we create each
-  // User with its Captain nested in a single write, batched through
-  // transactions to avoid opening 1000 individual round trips at once.
   const BATCH_SIZE = 100;
   for (let i = 0; i < captainSeeds.length; i += BATCH_SIZE) {
     const batch = captainSeeds.slice(i, i + BATCH_SIZE);
 
-    await prisma.$transaction(
-      batch.map(({ user, captain }) =>
-        prisma.user.create({
-          data: {
-            ...user,
-            captain: {
-              create: captain,
-            },
-          },
-        })
-      )
-    );
+    await prisma.captain.createMany({ data: batch });
 
     console.log(`Seeded captains ${i + 1}-${i + batch.length}`);
   }
 
-  console.log("1000 users + captains created successfully.");
+  console.log("1000 captains created successfully.");
 
   await prisma.compoundBoundary.deleteMany({});
   await prisma.compoundBoundary.create({
@@ -111,6 +92,20 @@ async function main() {
   });
 
   console.log("Pricing config seeded.");
+
+  await prisma.client.deleteMany({});
+  await prisma.client.create({
+    data: {
+      name: "Test Client",
+      phone: "01000000000",
+      gender: Gender.MALE,
+      passwordHash,
+    },
+  });
+
+  console.log(
+    "Test client seeded (phone: 01000000000, password: Password123!).",
+  );
 }
 
 main()
