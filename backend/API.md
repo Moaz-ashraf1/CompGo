@@ -1,4 +1,3 @@
-````markdown
 # CompGo Backend API Documentation
 
 ## Base URLs
