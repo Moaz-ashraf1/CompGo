@@ -483,3 +483,67 @@ Authorization: Bearer <accessToken> # required on /auth/logout, /me
 6. On logout, call `/auth/logout` and clear local tokens immediately regardless of the response.
 7. Use a `Dio` interceptor to automate steps 3-6 globally.
 8. Applies identically to the captain app, just pointed at `/captainapi/v1/auth` and `/captainapi/v1/me` instead of the client equivalents.
+
+## 10. Admin (`/adminapi/v1`)
+
+Protected by a static API key, not a login flow — see note below.
+
+Headers: `x-admin-key: <ADMIN_API_KEY from .env>`
+
+### `PATCH /adminapi/v1/captains/:id/phone`
+
+Request:
+
+```json
+{ "phone": "01055554444" }
+```
+
+Response 200:
+
+```json
+{
+  "status": "success",
+  "data": { "captain": { "id": "uuid", "phone": "01055554444", "...": "..." } }
+}
+```
+
+Errors: 401 invalid/missing x-admin-key, 404 captain not found, 409 phone already in use by another captain.
+
+### PATCH /adminapi/v1/captains/:id/password
+
+Request:
+
+```json
+{ "password": "newPassword123" }
+```
+
+Response 200:
+
+```json
+{ "status": "success", "message": "Captain password reset successfully" }
+```
+
+Errors: 401 invalid/missing x-admin-key, 404 captain not found.
+
+Resetting a password immediately revokes all of that captain's active sessions (all devices logged out, must log in again).
+
+### PATCH /adminapi/v1/clients/:id/password
+
+Request:
+
+```json
+{ "password": "newPassword123" }
+```
+
+Response 200:
+
+```json
+{ "status": "success", "message": "Client password reset successfully" }
+```
+
+Errors: 401 invalid/missing x-admin-key, 404 client not found.
+Same session-revocation behavior as the captain version above.
+
+```text
+How admin auth works: there is no admin login and no Admin table. ADMIN_API_KEY is a single shared secret set in .env. Whoever builds the admin dashboard keeps this key server-side (never in frontend/browser code) and attaches it to every request via x-admin-key. There's no per-admin identity or audit trail with this approach — anyone holding the key can act as admin.
+```

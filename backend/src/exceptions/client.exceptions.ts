@@ -12,3 +12,9 @@ export class PhoneAlreadyInUseError extends AppException {
     super(message, StatusCodes.CONFLICT);
   }
 }
+
+export class ClientNotFoundError extends AppException {
+  constructor(message = "Client not found") {
+    super(message, StatusCodes.NOT_FOUND);
+  }
+}
