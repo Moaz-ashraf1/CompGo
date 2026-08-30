@@ -28,7 +28,8 @@ Request:
   "password": "test1234"
 }
 ```
-````
+
+------
 
 - `name`: 3-100 chars, `phone`: Egyptian format, `gender`: `MALE`|`FEMALE`, `password`: min 8 chars
 
