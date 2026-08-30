@@ -1,4 +1,3 @@
-````markdown
 # CompGo Backend API Documentation
 
 ## Base URLs
@@ -29,7 +28,6 @@ Request:
   "password": "test1234"
 }
 ```
-````
 
 - `name`: 3-100 chars, `phone`: Egyptian format, `gender`: `MALE`|`FEMALE`, `password`: min 8 chars
 
@@ -464,8 +462,8 @@ Response `200`:
 ## 7. Auth Headers Reference
 
 ```
-x-device-id: <UUID generated once per device, stored locally>       # required on client/captain login + refresh
-Authorization: Bearer <accessToken>                                  # required on /auth/logout, /me
+x-device-id: <UUID generated once per device, stored locally> # required on client/captain login + refresh
+Authorization: Bearer <accessToken> # required on /auth/logout, /me
 ```
 
 ## 8. Token Lifetimes
