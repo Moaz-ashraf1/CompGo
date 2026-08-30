@@ -3,12 +3,13 @@
 
 ## Base URLs
 
-| Group                                                              | Base URL                          |
-| ------------------------------------------------------------------ | --------------------------------- |
-| Client (register/login)                                            | `http://<host>:3000/clientapi/v1` |
-| Everything else (auth refresh/logout, captains, pricing, boundary) | `http://<host>:3000/api/v1`       |
+| Group                                                                    | Base URL                           |
+| ------------------------------------------------------------------------ | ---------------------------------- |
+| Client (register/login)                                                  | `http://<host>:3000/clientapi/v1`  |
+| Captain (register/login)                                                 | `http://<host>:3000/captainapi/v1` |
+| Everything else (auth refresh/logout, captains admin, pricing, boundary) | `http://<host>:3000/api/v1`        |
 
-> Response envelope shape is not 100% consistent across modules — client/auth, client/profile, and shared auth use `{ status, data }`, while captain/pricing/boundary use `{ message, data }`. Documented exactly as implemented.
+> Response envelope shape is not 100% consistent across modules — client/captain auth, client/captain profile, and shared auth use `{ status, data }`, while captain-admin/pricing/boundary use `{ message, data }`. Documented exactly as implemented.
 
 ---
 
@@ -134,9 +135,149 @@ Errors:
 
 ---
 
-## 2. Shared Auth (`/api/v1/auth`)
+## 2. Captain Auth (`/captainapi/v1/auth`)
 
-Works identically for CLIENT or CAPTAIN sessions (role is embedded in the token, not the URL).
+Same pattern as client auth, fully independent account. No admin approval required — a captain can log in immediately after registering.
+
+### `POST /captainapi/v1/auth/register`
+
+Request:
+
+```json
+{
+  "name": "Ahmed Ali",
+  "phone": "01099998888",
+  "gender": "MALE",
+  "password": "test1234",
+  "nationalIdImage": "https://example.com/id.jpg",
+  "licenseImage": "https://example.com/license.jpg",
+  "vehicleNumber": "TEST-001",
+  "vehicleType": "CAR",
+  "vehicleModel": "Toyota Corolla 2020"
+}
+```
+
+- `vehicleType`: `MOTORCYCLE`|`CAR`|`BICYCLE`. `nationalIdImage`/`licenseImage` must be URLs. `password`: min 8 chars.
+
+Response `201`:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "captain": {
+      "id": "uuid",
+      "name": "...",
+      "phone": "...",
+      "gender": "MALE",
+      "accountType": "CAPTAIN"
+    }
+  }
+}
+```
+
+Errors: `409` phone already registered as a captain, or vehicle number already registered.
+
+### `POST /captainapi/v1/auth/login`
+
+Headers: `x-device-id: <device-uuid>`
+
+Request:
+
+```json
+{ "phone": "01099998888", "password": "test1234" }
+```
+
+Response `200`:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "captainId": "uuid",
+    "accessToken": "eyJ...",
+    "refreshToken": "..."
+  }
+}
+```
+
+Errors: `400` missing `x-device-id`, `401` invalid credentials or account `BLOCKED`.
+
+---
+
+## 2.5 Captain Profile (`/captainapi/v1`)
+
+Protected routes - require a valid CAPTAIN access token.
+
+Headers: `Authorization: Bearer <accessToken>`
+
+### `GET /captainapi/v1/me`
+
+Response `200`:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "captain": {
+      "id": "uuid",
+      "name": "...",
+      "phone": "...",
+      "gender": "MALE",
+      "status": "ACTIVE",
+      "amountDue": "0.00"
+    }
+  }
+}
+```
+
+Errors: `401` missing/invalid access token, or the account no longer exists.
+
+### `PATCH /captainapi/v1/me`
+
+Request (send `name`, `phone`, or both - at least one required):
+
+```json
+{ "name": "New Name" }
+```
+
+or
+
+```json
+{ "phone": "01099999999" }
+```
+
+Response `200`:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "captain": {
+      "id": "uuid",
+      "name": "...",
+      "phone": "...",
+      "gender": "MALE",
+      "status": "ACTIVE",
+      "amountDue": "0.00"
+    }
+  }
+}
+```
+
+Errors:
+
+- `400` no fields provided, or invalid phone format
+- `401` missing/invalid access token, or the account no longer exists
+- `409` phone already in use by another captain
+
+> Vehicle/license data (`vehicleNumber`, `vehicleType`, `vehicleModel`, `nationalIdImage`, `licenseImage`) is not editable via this endpoint yet.
+
+---
+
+## 3. Shared Auth (`/api/v1/auth`)
+
+Works identically for CLIENT or CAPTAIN sessions (role is embedded in the token, not the URL) — used by both apps.
 
 ### `POST /api/v1/auth/refresh`
 
@@ -177,37 +318,9 @@ Errors: `401` missing/invalid/expired access token.
 
 ---
 
-## 3. Captains (`/api/v1/captains`)
+## 4. Captains Admin (`/api/v1/captains`)
 
-⚠️ **Known issue**: these endpoints predate the schema redesign (removal of the shared `User` table) and have not been updated yet. `POST /api/v1/captains` may currently fail or behave unexpectedly — do not rely on it until it's revisited. No captain login/auth flow exists yet at all.
-
-### `POST /api/v1/captains`
-
-Request:
-
-```json
-{
-  "name": "Ahmed Ali",
-  "phone": "01012345678",
-  "gender": "MALE",
-  "nationalIdImage": "https://.../id.jpg",
-  "licenseImage": "https://.../license.jpg",
-  "vehicleNumber": "ABC-1234",
-  "vehicleType": "CAR",
-  "vehicleModel": "Toyota Corolla 2020"
-}
-```
-
-- `vehicleType`: `MOTORCYCLE`|`CAR`|`BICYCLE`. `nationalIdImage`/`licenseImage` must be URLs.
-
-Response `201`:
-
-```json
-{
-  "message": "Captain registered successfully",
-  "data": { "id": "uuid", "...": "..." }
-}
-```
+⚠️ **Not protected yet** — no `authenticate`/`authorize` middleware applied. Anyone can call these without logging in. Intended for an admin panel, not for captains themselves (captains use `/captainapi/v1/auth` and `/captainapi/v1/me` above).
 
 ### `GET /api/v1/captains`
 
@@ -224,6 +337,8 @@ Response `200`:
 ```json
 { "data": { "id": "uuid", "name": "...", "amountDue": "0.00", "...": "..." } }
 ```
+
+Errors: `404` captain not found.
 
 ### `PATCH /api/v1/captains/:id/block`
 
@@ -251,7 +366,7 @@ Resets `amountDue` to `0`. Response `200`:
 
 ---
 
-## 4. Compound Boundary (`/api/v1/compound-boundary`)
+## 5. Compound Boundary (`/api/v1/compound-boundary`)
 
 Single record representing the polygon boundary of the compound.
 
@@ -298,7 +413,7 @@ Response `200`:
 
 ---
 
-## 5. Pricing (`/api/v1/pricing`)
+## 6. Pricing (`/api/v1/pricing`)
 
 Single record with the compound's pricing configuration.
 
@@ -346,20 +461,27 @@ Response `200`:
 
 ---
 
-## 6. Auth Headers Reference
+## 7. Auth Headers Reference
 
 ```
-x-device-id: <UUID generated once per device, stored locally>       # required on client login + refresh
+x-device-id: <UUID generated once per device, stored locally>       # required on client/captain login + refresh
 Authorization: Bearer <accessToken>                                  # required on /auth/logout, /me
 ```
 
-## 7. Token Lifetimes
+## 8. Token Lifetimes
 
 | Token         | Lifetime                                      |
 | ------------- | --------------------------------------------- |
 | Access Token  | 15 minutes                                    |
 | Refresh Token | 30 days (renewed on every successful refresh) |
 
-```
+## 9. Suggested Flutter Flow
 
-```
+1. Store `accessToken`/`refreshToken` in `flutter_secure_storage` after register/login.
+2. Generate `deviceId` once per install (UUID), store it, send it on every request that needs it.
+3. On `401` from a protected request, call `/auth/refresh`.
+4. On refresh success, overwrite stored tokens and retry the original request.
+5. On refresh `401`, clear tokens and go to the login screen.
+6. On logout, call `/auth/logout` and clear local tokens immediately regardless of the response.
+7. Use a `Dio` interceptor to automate steps 3-6 globally.
+8. Applies identically to the captain app, just pointed at `/captainapi/v1/auth` and `/captainapi/v1/me` instead of the client equivalents.

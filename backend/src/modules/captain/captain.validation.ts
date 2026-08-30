@@ -31,5 +31,21 @@ export const loginCaptainSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
+export const updateCaptainProfileSchema = z
+  .object({
+    name: z.string().min(2).max(100).optional(),
+    phone: z
+      .string()
+      .regex(/^01[0125][0-9]{8}$/, "Invalid Egyptian phone number")
+      .optional(),
+  })
+  .refine((data) => data.name !== undefined || data.phone !== undefined, {
+    message: "At least one field (name or phone) must be provided",
+  });
+
 export type RegisterCaptainDTO = z.infer<typeof registerCaptainSchema>;
 export type LoginCaptainDTO = z.infer<typeof loginCaptainSchema>;
+
+export type UpdateCaptainProfileDTO = z.infer<
+  typeof updateCaptainProfileSchema
+>;

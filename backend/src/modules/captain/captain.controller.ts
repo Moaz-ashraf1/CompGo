@@ -1,8 +1,16 @@
 import type { Request, Response } from "express";
-
 import { StatusCodes } from "http-status-codes";
 import * as captainService from "./captain.service.js";
 import asyncHandler from "express-async-handler";
+
+export const getMe = asyncHandler(async (req: Request, res: Response) => {
+  const captain = await captainService.getMe(req.user!.id);
+
+  res.status(StatusCodes.OK).json({
+    status: "success",
+    data: { captain },
+  });
+});
 
 export const getAllCaptains = asyncHandler(
   async (req: Request, res: Response) => {
@@ -13,6 +21,15 @@ export const getAllCaptains = asyncHandler(
     });
   },
 );
+
+export const updateMe = asyncHandler(async (req: Request, res: Response) => {
+  const captain = await captainService.updateMe(req.user!.id, req.body);
+
+  res.status(StatusCodes.OK).json({
+    status: "success",
+    data: { captain },
+  });
+});
 
 export const getCaptainById = asyncHandler(
   async (req: Request, res: Response) => {

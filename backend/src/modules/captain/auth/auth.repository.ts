@@ -17,3 +17,14 @@ export const createCaptain = async (data: {
 }) => {
   return prisma.captain.create({ data });
 };
+
+export const findCaptainByVehicleNumber = async (vehicleNumber: string) => {
+  return prisma.captain.findUnique({
+    where: {
+      vehicleNumber,
+    },
+    select: {
+      id: true,
+    },
+  });
+};

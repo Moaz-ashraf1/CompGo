@@ -18,3 +18,15 @@ export class InvalidCredentialsError extends AppException {
     super(message, StatusCodes.UNAUTHORIZED);
   }
 }
+
+export class PhoneAlreadyInUseError extends AppException {
+  constructor(message = "This phone number is already in use") {
+    super(message, StatusCodes.CONFLICT);
+  }
+}
+
+export class VehicleNumberAlreadyInUseError extends AppException {
+  constructor(message = "This vehicle number is already registered") {
+    super(message, StatusCodes.CONFLICT);
+  }
+}

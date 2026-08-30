@@ -8,6 +8,7 @@ import { comparePassword, hashPassword } from "../../../utils/hash.js";
 import {
   CaptainAlreadyExistsError,
   InvalidCredentialsError,
+  VehicleNumberAlreadyInUseError,
 } from "../../../exceptions/captain.exceptions.js";
 
 export const registerCaptain = async (data: RegisterCaptainDTO) => {
@@ -17,6 +18,13 @@ export const registerCaptain = async (data: RegisterCaptainDTO) => {
     throw new CaptainAlreadyExistsError();
   }
 
+  const existingVehicle = await authRepo.findCaptainByVehicleNumber(
+    data.vehicleNumber,
+  );
+
+  if (existingVehicle) {
+    throw new VehicleNumberAlreadyInUseError();
+  }
   const passwordHash = await hashPassword(data.password);
 
   const captain = await authRepo.createCaptain({

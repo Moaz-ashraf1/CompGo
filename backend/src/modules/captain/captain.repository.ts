@@ -16,17 +16,6 @@ export const findCaptainByPhone = async (phone: string) => {
   });
 };
 
-export const findCaptainByVehicleNumber = async (vehicleNumber: string) => {
-  return prisma.captain.findUnique({
-    where: {
-      vehicleNumber,
-    },
-    select: {
-      id: true,
-    },
-  });
-};
-
 export const findAllCaptains = async () => {
   return prisma.captain.findMany({
     select: {
@@ -77,4 +66,11 @@ export const resetCaptainAmountDue = async (id: string) => {
       amountDue: 0,
     },
   });
+};
+
+export const updateCaptain = async (
+  id: string,
+  data: { name?: string; phone?: string },
+) => {
+  return prisma.captain.update({ where: { id }, data });
 };
