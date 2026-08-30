@@ -157,3 +157,44 @@
 {"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-28T04:51:32.684Z"}
 {"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-28T04:51:32.717Z"}
 {"level":"error","message":"Unhandled error This phone number is already in use","method":"PATCH","name":"PhoneAlreadyInUseError","stack":"PhoneAlreadyInUseError: This phone number is already in use\n    at Module.updateMe (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\modules\\client\\client.service.ts:29:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async <anonymous> (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\modules\\client\\client.controller.ts:16:18)","timestamp":"2026-08-28T04:54:26.022Z","url":"/clientapi/v1/me"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:25:48.966Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:25:48.977Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:34:28.337Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:34:28.356Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:35:11.900Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:35:11.913Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:40:37.768Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:40:37.793Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:41:05.872Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:41:05.876Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:41:09.494Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:41:09.502Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:41:35.733Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:41:35.738Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:41:40.170Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:41:40.175Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:42:04.490Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:42:04.495Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:43:12.128Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:43:12.133Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:43:26.528Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:43:26.536Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:43:47.228Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:43:47.233Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:44:21.835Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:44:21.841Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:44:37.668Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:44:37.674Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:44:42.908Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:44:42.913Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:44:51.582Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:44:51.587Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:45:04.941Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:45:04.946Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:45:47.601Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:45:47.606Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:51:09.501Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:51:09.507Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-08-30T06:51:41.848Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-08-30T06:51:41.855Z"}
+{"level":"error","message":"Unhandled error Captain already exists","method":"POST","name":"CaptainAlreadyExistsError","stack":"CaptainAlreadyExistsError: Captain already exists\n    at Module.registerCaptain (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\modules\\captain\\auth\\auth.service.ts:17:11)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async <anonymous> (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\modules\\captain\\auth\\auth.controller.ts:8:21)","timestamp":"2026-08-30T06:52:17.190Z","url":"/captainapi/v1/auth/register"}

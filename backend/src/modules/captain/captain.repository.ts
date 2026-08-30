@@ -1,12 +1,9 @@
 import { prisma } from "../../config/prisma.js";
-import type { CreateCaptainDto } from "./captain.validation.js";
+import type {
+  RegisterCaptainDTO,
+  LoginCaptainDTO,
+} from "./captain.validation.js";
 import { CaptainStatus } from "../../generated/prisma/client.js";
-
-export const createCaptain = async (data:CreateCaptainDto)=>{
-    return prisma.captain.create({
-        data,
-    })
-}
 
 export const findCaptainByPhone = async (phone: string) => {
   return prisma.captain.findUnique({
@@ -19,8 +16,8 @@ export const findCaptainByPhone = async (phone: string) => {
   });
 };
 
-export const findCaptainByVehicleNumber = async (vehicleNumber:string)=>{
-    return prisma.captain.findUnique({
+export const findCaptainByVehicleNumber = async (vehicleNumber: string) => {
+  return prisma.captain.findUnique({
     where: {
       vehicleNumber,
     },
@@ -28,7 +25,7 @@ export const findCaptainByVehicleNumber = async (vehicleNumber:string)=>{
       id: true,
     },
   });
-}
+};
 
 export const findAllCaptains = async () => {
   return prisma.captain.findMany({
@@ -57,10 +54,9 @@ export const findCaptainById = async (id: string) => {
   });
 };
 
-
 export const updateCaptainStatus = async (
   id: string,
-  status: CaptainStatus
+  status: CaptainStatus,
 ) => {
   return prisma.captain.update({
     where: {
