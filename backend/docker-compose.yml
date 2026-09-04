@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER= compgo_user
+      - POSTGRES_PASSWORD= ${DB_PASSWORD}
+      - POSTGRES_DB= compgo
+    volumes:
+       - pgdata:/var/lib/postgresql/data
+
+  
+  backend:
+    build: .
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://compgo_user:${DB_PASSWORD}@postgres:5432/compgo
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+      ADMIN_API_KEY: ${ADMIN_KEY}
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:
+
+
