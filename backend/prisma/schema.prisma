@@ -31,7 +31,17 @@ enum CaptainStatus {
 enum AccountRole {
   CLIENT
   CAPTAIN
+  ADMIN
 }
+
+model Admin {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 
 model Client {
   id           String       @id @default(uuid())

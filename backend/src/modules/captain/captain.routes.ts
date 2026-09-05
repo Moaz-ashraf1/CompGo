@@ -18,10 +18,35 @@ router.patch(
   captainController.updateMe,
 );
 
-router.get("/", captainController.getAllCaptains);
-router.get("/:id", captainController.getCaptainById);
-router.patch("/:id/block", captainController.blockCaptain);
-router.patch("/:id/unblock", captainController.unblockCaptain);
-router.patch("/:id/reset-amount-due", captainController.resetAmountDue);
+router.get(
+  "/",
+  authenticate,
+  authorize("ADMIN"),
+  captainController.getAllCaptains,
+);
+router.get(
+  "/:id",
+  authenticate,
+  authorize("ADMIN"),
+  captainController.getCaptainById,
+);
+router.patch(
+  "/:id/block",
+  authenticate,
+  authorize("ADMIN"),
+  captainController.blockCaptain,
+);
+router.patch(
+  "/:id/unblock",
+  authenticate,
+  authorize("ADMIN"),
+  captainController.unblockCaptain,
+);
+router.patch(
+  "/:id/reset-amount-due",
+  authenticate,
+  authorize("ADMIN"),
+  captainController.resetAmountDue,
+);
 
 export default router;

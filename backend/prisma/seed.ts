@@ -106,6 +106,18 @@ async function main() {
   console.log(
     "Test client seeded (phone: 01000000000, password: Password123!).",
   );
+
+  await prisma.admin.deleteMany({});
+  await prisma.admin.create({
+    data: {
+      username: "admin",
+      passwordHash,
+    },
+  });
+
+  console.log(
+    "Admin account seeded (username: admin, password: Password123!).",
+  );
 }
 
 main()

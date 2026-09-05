@@ -5,11 +5,14 @@ import {
   resetPasswordSchema,
 } from "./admin.validation.js";
 import { validate } from "../../middlewares/validation.middleware.js";
-import { adminAuth } from "../../middlewares/adminAuth.js";
+import { authenticate, authorize } from "../../middlewares/auth.js";
+import authRouter from "../auth/auth.route.js";
 
 const router = Router();
 
-router.use(adminAuth);
+router.use("/auth", authRouter);
+
+router.use(authenticate, authorize("ADMIN"));
 
 router.patch(
   "/captains/:id/phone",
