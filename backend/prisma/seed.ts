@@ -55,6 +55,8 @@ async function main() {
     };
   });
 
+  await prisma.captain.deleteMany({});
+
   const BATCH_SIZE = 100;
   for (let i = 0; i < captainSeeds.length; i += BATCH_SIZE) {
     const batch = captainSeeds.slice(i, i + BATCH_SIZE);

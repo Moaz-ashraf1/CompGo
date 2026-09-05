@@ -1,7 +1,7 @@
 import "dotenv/config";
 import jwt from "jsonwebtoken";
 
-export type AccountRole = "CLIENT" | "CAPTAIN";
+export type AccountRole = "CLIENT" | "CAPTAIN" | "ADMIN";
 
 export interface AccessTokenPayload {
   sub: string;
