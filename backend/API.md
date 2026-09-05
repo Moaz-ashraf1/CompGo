@@ -1,24 +1,28 @@
-# CompGo Backend API Documentation
+# CompGo API - Complete Endpoint Reference
 
-## Base URLs
+## Base URL
 
-| Group                                                                    | Base URL                           |
-| ------------------------------------------------------------------------ | ---------------------------------- |
-| Client (register/login)                                                  | `http://<host>:3000/clientapi/v1`  |
-| Captain (register/login)                                                 | `http://<host>:3000/captainapi/v1` |
-| Everything else (auth refresh/logout, captains admin, pricing, boundary) | `http://<host>:3000/api/v1`        |
+```
+https://api.ingateapp.tech
+```
 
-> Response envelope shape is not 100% consistent across modules — client/captain auth, client/captain profile, and shared auth use `{ status, data }`, while captain-admin/pricing/boundary use `{ message, data }`. Documented exactly as implemented.
+## Auth Model
+
+- **User (Client) and Captain**: register with phone + password, login returns `accessToken` (15 min) + `refreshToken` (30 days).
+- **Admin**: no self-registration - accounts are created manually. Login works the same way (username + password → tokens).
+- All three roles share the same refresh/logout mechanism (`/api/v1/auth/...`).
+- `accessToken` goes in `Authorization: Bearer <token>` on every protected request.
+- `x-device-id` (any stable UUID you generate once per device/install) is required on every login and refresh call.
 
 ---
 
-## 1. Client Auth (`/clientapi/v1/auth`)
+# 1. USER (Client) App
 
-Client and Captain are fully independent accounts — no shared `User` table. Each has its own `id`, `name`, `phone` (unique per role), `gender`, and `passwordHash`.
+Base path: `/clientapi/v1`
 
 ### `POST /clientapi/v1/auth/register`
 
-Request:
+**Request:**
 
 ```json
 {
@@ -29,11 +33,7 @@ Request:
 }
 ```
 
----
-
-- `name`: 3-100 chars, `phone`: Egyptian format, `gender`: `MALE`|`FEMALE`, `password`: min 8 chars
-
-Response `201`:
+**Response `201`:**
 
 ```json
 {
@@ -50,19 +50,18 @@ Response `201`:
 }
 ```
 
-Errors: `409` phone already registered as a client.
+**Errors:** `409` phone already registered.
 
 ### `POST /clientapi/v1/auth/login`
 
-Headers: `x-device-id: <device-uuid>`
-
-Request:
+Headers: `x-device-id`
+**Request:**
 
 ```json
 { "phone": "01012345678", "password": "test1234" }
 ```
 
-Response `200`:
+**Response `200`:**
 
 ```json
 {
@@ -75,19 +74,12 @@ Response `200`:
 }
 ```
 
-Errors: `400` missing `x-device-id`, `401` invalid credentials or account `BLOCKED`.
-
----
-
-## 1.5 Client Profile (`/clientapi/v1`)
-
-Protected routes - require a valid CLIENT access token.
-
-Headers: `Authorization: Bearer <accessToken>`
+**Errors:** `400` missing `x-device-id`, `401` invalid credentials or blocked account.
 
 ### `GET /clientapi/v1/me`
 
-Response `200`:
+Headers: `Authorization: Bearer <accessToken>`
+**Response `200`:**
 
 ```json
 {
@@ -98,50 +90,27 @@ Response `200`:
 }
 ```
 
-Errors: `401` missing/invalid access token, or the account no longer exists.
-
 ### `PATCH /clientapi/v1/me`
 
-Request (send `name`, `phone`, or both - at least one required):
+Headers: `Authorization: Bearer <accessToken>`
+**Request** (send `name`, `phone`, or both):
 
 ```json
 { "name": "New Name" }
 ```
 
-or
-
-```json
-{ "phone": "01099999999" }
-```
-
-Response `200`:
-
-```json
-{
-  "status": "success",
-  "data": {
-    "client": { "id": "uuid", "name": "...", "phone": "...", "gender": "MALE" }
-  }
-}
-```
-
-Errors:
-
-- `400` no fields provided, or invalid phone format
-- `401` missing/invalid access token, or the account no longer exists
-- `409` phone already in use by another client
-
-> Changing phone does **not** invalidate current tokens (they're keyed by account `id`, not phone) and does **not** require re-login. It only affects future logins (must use the new phone).
+**Response `200`:** same shape as `GET /me`.
+**Errors:** `400` nothing to update, `401` invalid token, `409` phone taken.
 
 ---
 
-## 2. Captain Auth (`/captainapi/v1/auth`)
+# 2. CAPTAIN App
 
-Same pattern as client auth, fully independent account. No admin approval required — a captain can log in immediately after registering.
+Base path: `/captainapi/v1`
 
 ### `POST /captainapi/v1/auth/register`
 
-Request:
+**Request:**
 
 ```json
 {
@@ -149,17 +118,16 @@ Request:
   "phone": "01099998888",
   "gender": "MALE",
   "password": "test1234",
-  "nationalIdImage": "https://example.com/id.jpg",
-  "licenseImage": "https://example.com/license.jpg",
-  "vehicleNumber": "TEST-001",
+  "nationalIdImage": "https://.../id.jpg",
+  "licenseImage": "https://.../license.jpg",
+  "vehicleNumber": "ABC-1234",
   "vehicleType": "CAR",
   "vehicleModel": "Toyota Corolla 2020"
 }
 ```
 
-- `vehicleType`: `MOTORCYCLE`|`CAR`|`BICYCLE`. `nationalIdImage`/`licenseImage` must be URLs. `password`: min 8 chars.
-
-Response `201`:
+- `vehicleType`: `MOTORCYCLE` | `CAR` | `BICYCLE`
+  **Response `201`:**
 
 ```json
 {
@@ -176,19 +144,20 @@ Response `201`:
 }
 ```
 
-Errors: `409` phone already registered as a captain, or vehicle number already registered.
+**Errors:** `409` phone or vehicle number already registered.
+
+> No approval needed - a captain can log in immediately after registering.
 
 ### `POST /captainapi/v1/auth/login`
 
-Headers: `x-device-id: <device-uuid>`
-
-Request:
+Headers: `x-device-id`
+**Request:**
 
 ```json
 { "phone": "01099998888", "password": "test1234" }
 ```
 
-Response `200`:
+**Response `200`:**
 
 ```json
 {
@@ -201,19 +170,10 @@ Response `200`:
 }
 ```
 
-Errors: `400` missing `x-device-id`, `401` invalid credentials or account `BLOCKED`.
-
----
-
-## 2.5 Captain Profile (`/captainapi/v1`)
-
-Protected routes - require a valid CAPTAIN access token.
-
-Headers: `Authorization: Bearer <accessToken>`
-
 ### `GET /captainapi/v1/me`
 
-Response `200`:
+Headers: `Authorization: Bearer <accessToken>`
+**Response `200`:**
 
 ```json
 {
@@ -230,155 +190,132 @@ Response `200`:
   }
 }
 ```
-
-Errors: `401` missing/invalid access token, or the account no longer exists.
 
 ### `PATCH /captainapi/v1/me`
 
-Request (send `name`, `phone`, or both - at least one required):
+Headers: `Authorization: Bearer <accessToken>`
+**Request:** `{ "name": "..." }` and/or `{ "phone": "..." }`
+**Response `200`:** same shape as `GET /me`.
+
+---
+
+# 3. ADMIN (used by the dashboard's own backend, not the dashboard app directly)
+
+Base path: `/adminapi/v1`
+
+### `POST /adminapi/v1/auth/login`
+
+Headers: `x-device-id`
+**Request:**
 
 ```json
-{ "name": "New Name" }
+{ "username": "admin", "password": "Password123!" }
 ```
 
-or
-
-```json
-{ "phone": "01099999999" }
-```
-
-Response `200`:
+**Response `200`:**
 
 ```json
 {
   "status": "success",
   "data": {
-    "captain": {
-      "id": "uuid",
-      "name": "...",
-      "phone": "...",
-      "gender": "MALE",
-      "status": "ACTIVE",
-      "amountDue": "0.00"
-    }
+    "adminId": "uuid",
+    "username": "admin",
+    "accessToken": "eyJ...",
+    "refreshToken": "..."
   }
 }
 ```
 
-Errors:
+**Errors:** `401` invalid credentials.
 
-- `400` no fields provided, or invalid phone format
-- `401` missing/invalid access token, or the account no longer exists
-- `409` phone already in use by another captain
+> No public registration - admin accounts are created manually by the backend team.
 
-> Vehicle/license data (`vehicleNumber`, `vehicleType`, `vehicleModel`, `nationalIdImage`, `licenseImage`) is not editable via this endpoint yet.
+### `PATCH /adminapi/v1/captains/:id/phone`
 
----
-
-## 3. Shared Auth (`/api/v1/auth`)
-
-Works identically for CLIENT or CAPTAIN sessions (role is embedded in the token, not the URL) — used by both apps.
-
-### `POST /api/v1/auth/refresh`
-
-Headers: `x-device-id: <same device-uuid used at login>`
-
-Request:
+Headers: `Authorization: Bearer <adminAccessToken>`
+**Request:**
 
 ```json
-{ "refreshToken": "38f9b04c1e52c215..." }
+{ "phone": "01055554444" }
 ```
 
-Response `200`:
+**Response `200`:**
 
 ```json
 {
   "status": "success",
-  "data": { "accessToken": "eyJ... (new)", "refreshToken": "a1b2c3... (new)" }
+  "data": { "captain": { "id": "uuid", "phone": "01055554444", "...": "..." } }
 }
 ```
 
-Rotation: the old refresh token is invalidated immediately — always overwrite stored tokens with the new pair.
+**Errors:** `401` invalid/missing token or not an admin, `404` captain not found, `409` phone in use.
 
-Errors: `400` missing fields, `401` invalid/expired/revoked token. A revoked-token reuse revokes the entire session family (theft detection) — treat as "session ended, log in again."
+### `PATCH /adminapi/v1/captains/:id/password`
 
-### `POST /api/v1/auth/logout`
+**Request:** `{ "password": "newPassword123" }`
+**Response `200`:** `{ "status": "success", "message": "Captain password reset successfully" }`
 
-Headers: `Authorization: Bearer <accessToken>`
+> Revokes all of that captain's active sessions.
 
-Response `200`:
+### `PATCH /adminapi/v1/clients/:id/password`
 
-```json
-{ "status": "success", "message": "Logged out successfully" }
-```
-
-Revokes the current session (all refresh tokens sharing the same login's family). The access token itself stays technically valid until it naturally expires (≤15 min) since it's stateless — clear it client-side immediately regardless.
-
-Errors: `401` missing/invalid/expired access token.
+**Request:** `{ "password": "newPassword123" }`
+**Response `200`:** `{ "status": "success", "message": "Client password reset successfully" }`
 
 ---
 
-## 4. Captains Admin (`/api/v1/captains`)
+# 4. DASHBOARD (data management - all require an ADMIN access token)
 
-⚠️ **Not protected yet** — no `authenticate`/`authorize` middleware applied. Anyone can call these without logging in. Intended for an admin panel, not for captains themselves (captains use `/captainapi/v1/auth` and `/captainapi/v1/me` above).
+Base path: `/api/v1`
+
+Headers: `Authorization: Bearer <adminAccessToken>` (get this from `POST /adminapi/v1/auth/login` above)
 
 ### `GET /api/v1/captains`
 
-Response `200`:
+List all captains.
+**Response `200`:**
 
 ```json
-{ "data": [{ "id": "uuid", "name": "...", "status": "ACTIVE", "...": "..." }] }
+{
+  "data": [
+    {
+      "id": "uuid",
+      "name": "...",
+      "phone": "...",
+      "status": "ACTIVE",
+      "amountDue": "0.00",
+      "...": "..."
+    }
+  ]
+}
 ```
 
 ### `GET /api/v1/captains/:id`
 
-Response `200`:
-
-```json
-{ "data": { "id": "uuid", "name": "...", "amountDue": "0.00", "...": "..." } }
-```
-
-Errors: `404` captain not found.
+**Response `200`:** `{ "data": { "id": "uuid", "...": "..." } }`
+**Errors:** `404` not found.
 
 ### `PATCH /api/v1/captains/:id/block`
 
-Sets `status = BLOCKED`. Response `200`:
-
-```json
-{ "message": "Captain blocked successfully", "data": { "...": "..." } }
-```
+**Response `200`:** `{ "message": "Captain blocked successfully", "data": { "...": "..." } }`
 
 ### `PATCH /api/v1/captains/:id/unblock`
 
-Sets `status = ACTIVE`. Response `200`:
-
-```json
-{ "message": "Captain unblocked successfully", "data": { "...": "..." } }
-```
+**Response `200`:** `{ "message": "Captain unblocked successfully", "data": { "...": "..." } }`
 
 ### `PATCH /api/v1/captains/:id/reset-amount-due`
 
-Resets `amountDue` to `0`. Response `200`:
-
-```json
-{ "message": "Captain amount due reset successfully", "data": { "...": "..." } }
-```
-
----
-
-## 5. Compound Boundary (`/api/v1/compound-boundary`)
-
-Single record representing the polygon boundary of the compound.
+**Response `200`:** `{ "message": "Captain amount due reset successfully", "data": { "...": "..." } }`
 
 ### `GET /api/v1/compound-boundary`
 
-Response `200`:
+**Response `200`:**
 
 ```json
 {
   "data": {
     "id": "uuid",
-    "points": [{ "lat": 30.123, "lng": 31.456 }, "..."],
+    "points": [{ "lat": 30.0131, "lng": 31.2089 }],
     "updatedAt": "..."
   }
 }
@@ -388,164 +325,100 @@ Response `200`:
 
 ### `PUT /api/v1/compound-boundary`
 
-Request:
-
-```json
-{
-  "points": [
-    { "lat": 30.123, "lng": 31.456 },
-    { "lat": 30.124, "lng": 31.457 },
-    { "lat": 30.125, "lng": 31.458 }
-  ]
-}
-```
-
-At least 3 `{ lat, lng }` points. Upsert semantics.
-
-Response `200`:
-
-```json
-{
-  "message": "Compound boundary updated successfully",
-  "data": { "id": "uuid", "points": ["..."] }
-}
-```
-
----
-
-## 6. Pricing (`/api/v1/pricing`)
-
-Single record with the compound's pricing configuration.
+**Request:** `{ "points": [ { "lat": ..., "lng": ... }, ... ] }` (at least 3 points)
+**Response `200`:** `{ "message": "Compound boundary updated successfully", "data": { "...": "..." } }`
 
 ### `GET /api/v1/pricing`
 
-Response `200`:
+**Response `200`:**
 
 ```json
 {
   "data": {
     "id": "uuid",
-    "rideInsideCompoundPrice": "10.00",
-    "rideOutsidePricePerKm": "5.00",
-    "orderInsideCompoundPrice": "15.00",
-    "airportPrice": "100.00"
+    "rideInsideCompoundPrice": "35",
+    "rideOutsidePricePerKm": "5",
+    "orderInsideCompoundPrice": "30",
+    "airportPrice": "280",
+    "updatedAt": "..."
   }
 }
 ```
 
-`data` is `null` if unset.
-
 ### `PUT /api/v1/pricing`
 
-Request:
+**Request:**
 
 ```json
 {
-  "rideInsideCompoundPrice": 10,
+  "rideInsideCompoundPrice": 35,
   "rideOutsidePricePerKm": 5,
-  "orderInsideCompoundPrice": 15,
-  "airportPrice": 100
+  "orderInsideCompoundPrice": 30,
+  "airportPrice": 280
 }
 ```
 
-All fields required, positive numbers. Upsert semantics.
-
-Response `200`:
-
-```json
-{
-  "message": "Pricing updated successfully",
-  "data": { "id": "uuid", "...": "..." }
-}
-```
+**Response `200`:** `{ "message": "Pricing updated successfully", "data": { "...": "..." } }`
 
 ---
 
-## 7. Auth Headers Reference
+# 5. SHARED AUTH (used by all three: User, Captain, Admin)
 
-```
-x-device-id: <UUID generated once per device, stored locally> # required on client/captain login + refresh
-Authorization: Bearer <accessToken> # required on /auth/logout, /me
-```
+Base path: `/api/v1/auth`
 
-## 8. Token Lifetimes
+### `POST /api/v1/auth/refresh`
 
-| Token         | Lifetime                                      |
-| ------------- | --------------------------------------------- |
-| Access Token  | 15 minutes                                    |
-| Refresh Token | 30 days (renewed on every successful refresh) |
-
-## 9. Suggested Flutter Flow
-
-1. Store `accessToken`/`refreshToken` in `flutter_secure_storage` after register/login.
-2. Generate `deviceId` once per install (UUID), store it, send it on every request that needs it.
-3. On `401` from a protected request, call `/auth/refresh`.
-4. On refresh success, overwrite stored tokens and retry the original request.
-5. On refresh `401`, clear tokens and go to the login screen.
-6. On logout, call `/auth/logout` and clear local tokens immediately regardless of the response.
-7. Use a `Dio` interceptor to automate steps 3-6 globally.
-8. Applies identically to the captain app, just pointed at `/captainapi/v1/auth` and `/captainapi/v1/me` instead of the client equivalents.
-
-## 10. Admin (`/adminapi/v1`)
-
-Protected by a static API key, not a login flow — see note below.
-
-Headers: `x-admin-key: <ADMIN_API_KEY from .env>`
-
-### `PATCH /adminapi/v1/captains/:id/phone`
-
-Request:
-
-```json
-{ "phone": "01055554444" }
-```
-
-Response 200:
+Headers: `x-device-id` (same device used at login)
+**Request:** `{ "refreshToken": "..." }`
+**Response `200`:**
 
 ```json
 {
   "status": "success",
-  "data": { "captain": { "id": "uuid", "phone": "01055554444", "...": "..." } }
+  "data": { "accessToken": "eyJ... (new)", "refreshToken": "... (new)" }
 }
 ```
 
-Errors: 401 invalid/missing x-admin-key, 404 captain not found, 409 phone already in use by another captain.
+Always overwrite both stored tokens with the new pair - the old refresh token is invalidated immediately.
 
-### PATCH /adminapi/v1/captains/:id/password
+**Errors:** `401` invalid/expired/revoked token → clear local tokens, go to login. A revoked-token reuse revokes the whole session (possible theft) - same behavior, same handling.
 
-Request:
+### `POST /api/v1/auth/logout`
 
-```json
-{ "password": "newPassword123" }
-```
+Headers: `Authorization: Bearer <accessToken>`
+**Response `200`:** `{ "status": "success", "message": "Logged out successfully" }`
+Clear local tokens client-side immediately regardless of the response.
 
-Response 200:
+---
 
-```json
-{ "status": "success", "message": "Captain password reset successfully" }
-```
+# 6. Status Codes Quick Reference
 
-Errors: 401 invalid/missing x-admin-key, 404 captain not found.
+| Code | Meaning                                               |
+| ---- | ----------------------------------------------------- |
+| 200  | Success                                               |
+| 201  | Created                                               |
+| 400  | Invalid request body / validation error               |
+| 401  | Invalid/missing/expired token, or invalid credentials |
+| 404  | Resource not found                                    |
+| 409  | Conflict (duplicate phone/vehicle number/etc.)        |
+| 500  | Server error - report to backend immediately          |
 
-Resetting a password immediately revokes all of that captain's active sessions (all devices logged out, must log in again).
+---
 
-### PATCH /adminapi/v1/clients/:id/password
+# 7. Recommended Client-Side Flow (all three apps)
 
-Request:
+1. Store `accessToken` + `refreshToken` in secure storage (`flutter_secure_storage`) after login.
+2. Generate `deviceId` once per install, reuse it forever, send it on login/refresh.
+3. On any `401` from a protected request → call `/api/v1/auth/refresh`.
+4. On success → overwrite stored tokens, retry the original request.
+5. On refresh failure (`401`) → clear tokens, redirect to login.
+6. On logout → call `/api/v1/auth/logout`, then clear local tokens regardless of the response.
+7. Use a `Dio` interceptor to automate steps 3-6 globally instead of repeating per screen.
 
-```json
-{ "password": "newPassword123" }
-```
+---
 
-Response 200:
+# 8. Known Gaps (not built yet)
 
-```json
-{ "status": "success", "message": "Client password reset successfully" }
-```
-
-Errors: 401 invalid/missing x-admin-key, 404 client not found.
-Same session-revocation behavior as the captain version above.
-
-```text
-How admin auth works: there is no admin login and no Admin table. ADMIN_API_KEY is a single shared secret set in .env. Whoever builds the admin dashboard keeps this key server-side (never in frontend/browser code) and attaches it to every request via x-admin-key. There's no per-admin identity or audit trail with this approach — anyone holding the key can act as admin.
-```
+- Vehicle/license data on the captain profile is not editable via `PATCH /me` (only name/phone).
+- No client listing/management endpoints for the dashboard yet (only password reset exists for clients).
+- No self-service forgot-password flow - only admin-driven password resets.
