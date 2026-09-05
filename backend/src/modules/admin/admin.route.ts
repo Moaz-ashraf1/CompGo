@@ -6,7 +6,7 @@ import {
 } from "./admin.validation.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import { authenticate, authorize } from "../../middlewares/auth.js";
-import authRouter from "../auth/auth.route.js";
+import authRouter from "./auth/auth.route.js";
 
 const router = Router();
 
