@@ -287,3 +287,17 @@
 {"level":"error","message":"Unhandled error Invalid credentials","method":"POST","name":"InvalidCredentialsError","stack":"InvalidCredentialsError: Invalid credentials\n    at Module.loginAdmin (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\modules\\admin\\auth\\auth.service.ts:12:21)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async <anonymous> (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\modules\\admin\\auth\\auth.controller.ts:17:18)","timestamp":"2026-09-05T15:43:05.762Z","url":"/adminapi/v1/auth/login"}
 {"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-05T15:45:40.102Z"}
 {"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-05T15:45:40.109Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:09:23.896Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:09:23.906Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:12:54.548Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:12:54.566Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:13:32.202Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:13:32.251Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:14:09.887Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:14:09.914Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:14:39.357Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:14:39.368Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:14:53.370Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:14:53.407Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:16:21.877Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:16:21.890Z"}

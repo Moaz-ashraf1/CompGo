@@ -29,3 +29,7 @@ export const updateClientPassword = async (
 ) => {
   return prisma.client.update({ where: { id }, data: { passwordHash } });
 };
+
+export const findClientByPhone = async (phone: string) => {
+  return prisma.client.findUnique({ where: { phone } });
+};

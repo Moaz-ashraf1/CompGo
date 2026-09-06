@@ -3,6 +3,7 @@ import * as adminController from "./admin.controller.js";
 import {
   updateCaptainPhoneSchema,
   resetPasswordSchema,
+  resetClientPasswordByPhoneSchema,
 } from "./admin.validation.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import { authenticate, authorize } from "../../middlewares/auth.js";
@@ -25,8 +26,8 @@ router.patch(
   adminController.resetCaptainPassword,
 );
 router.patch(
-  "/clients/:id/password",
-  validate(resetPasswordSchema),
+  "/clients/password",
+  validate(resetClientPasswordByPhoneSchema),
   adminController.resetClientPassword,
 );
 

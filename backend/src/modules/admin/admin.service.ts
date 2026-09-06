@@ -45,16 +45,16 @@ export const resetCaptainPassword = async (
 };
 
 export const resetClientPassword = async (
-  clientId: string,
+  phone: string,
   data: ResetPasswordDTO,
 ) => {
-  const client = await adminRepo.findClientById(clientId);
+  const client = await adminRepo.findClientByPhone(phone);
   if (!client) throw new ClientNotFoundError();
 
   const passwordHash = await hashPassword(data.password);
-  const updated = await adminRepo.updateClientPassword(clientId, passwordHash);
+  const updated = await adminRepo.updateClientPassword(client.id, passwordHash);
 
-  await authRepo.revokeAllByAccount(clientId);
+  await authRepo.revokeAllByAccount(client.id);
 
   return updated;
 };
