@@ -301,3 +301,23 @@
 {"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:14:53.407Z"}
 {"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:16:21.877Z"}
 {"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:16:21.890Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:21:20.872Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:21:20.897Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:21:45.355Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:21:45.367Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:23:18.986Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:23:19.010Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:27:21.767Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:27:21.792Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:33:06.898Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:33:06.908Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:34:09.160Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:34:09.170Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:40:18.249Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:40:18.260Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:41:04.723Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-06T15:41:04.735Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:42:35.300Z"}
+{"env":"development","level":"info","message":"Server running","port":5000,"timestamp":"2026-09-06T15:42:35.308Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-06T15:44:53.403Z"}
+{"env":"development","level":"info","message":"Server running","port":5000,"timestamp":"2026-09-06T15:44:53.413Z"}

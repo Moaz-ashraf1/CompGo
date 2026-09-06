@@ -1,13 +1,13 @@
 import crypto from "crypto";
 import * as authRepo from "./auth.repository.js";
-import { generateAccessToken, type AccountRole } from "../../utils/jwt.js";
+import { generateAccessToken } from "../../utils/jwt.js";
 import { generateRefreshToken, hashRefreshToken } from "../../utils/token.js";
 import {
   InvalidRefreshTokenError,
   RefreshTokenExpiredError,
   SessionCompromisedError,
 } from "../../exceptions/auth.exceptions.js";
-
+import type { AccountRole } from "../../utils/jwt.js";
 const REFRESH_TOKEN_EXPIRES_IN_DAYS = 30;
 
 const buildRefreshTokenExpiry = () => {

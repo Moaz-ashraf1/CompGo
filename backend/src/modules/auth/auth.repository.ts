@@ -1,8 +1,8 @@
 import { prisma } from "../../config/prisma.js";
-
+import type { AccountRole } from "../../utils/jwt.js";
 export const createRefreshToken = async (data: {
   accountId: string;
-  role: "CLIENT" | "CAPTAIN";
+  role: AccountRole;
   tokenHash: string;
   familyId: string;
   deviceId: string;
