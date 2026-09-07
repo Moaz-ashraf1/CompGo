@@ -99,6 +99,7 @@ model PricingConfig {
   rideInsideCompoundPrice  Decimal  @db.Decimal(10, 2)
   rideOutsidePricePerKm    Decimal  @db.Decimal(10, 2)
   orderInsideCompoundPrice Decimal  @db.Decimal(10, 2)
+  commissionPercentage     Decimal  @default(15) @db.Decimal(5, 2)
   airportPrice             Decimal  @db.Decimal(10, 2)
   updatedAt                DateTime @updatedAt
 }

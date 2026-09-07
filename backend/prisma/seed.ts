@@ -90,6 +90,7 @@ async function main() {
       rideOutsidePricePerKm: 5,
       orderInsideCompoundPrice: 30,
       airportPrice: 280,
+      commissionPercentage: 15,
     },
   });
 
