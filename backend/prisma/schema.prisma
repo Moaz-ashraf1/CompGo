@@ -49,6 +49,7 @@ model Client {
   phone        String       @unique
   gender       Gender
   passwordHash String
+  tripNum      Int          @default(0)
   status       ClientStatus @default(ACTIVE)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
@@ -101,3 +102,4 @@ model PricingConfig {
   airportPrice             Decimal  @db.Decimal(10, 2)
   updatedAt                DateTime @updatedAt
 }
+

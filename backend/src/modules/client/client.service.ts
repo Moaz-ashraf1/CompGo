@@ -38,3 +38,6 @@ export const updateMe = async (
     gender: updated.gender,
   };
 };
+export const getAllClientsForAdmin = async () => {
+  return clientRepo.findAllClients();
+};

@@ -102,8 +102,21 @@ async function main() {
       phone: "01000000000",
       gender: Gender.MALE,
       passwordHash,
+      tripNum: 12,
     },
   });
+
+  const clientSeeds = Array.from({ length: 20 }, (_, index) => {
+    const number = index + 1;
+    return {
+      name: `Client ${number}`,
+      phone: `0111${String(number).padStart(7, "0")}`,
+      gender: number % 2 === 0 ? Gender.MALE : Gender.FEMALE,
+      passwordHash,
+      tripNum: Math.floor(Math.random() * 50),
+    };
+  });
+  await prisma.client.createMany({ data: clientSeeds });
 
   console.log(
     "Test client seeded (phone: 01000000000, password: Password123!).",

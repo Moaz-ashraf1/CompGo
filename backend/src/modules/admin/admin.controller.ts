@@ -33,8 +33,6 @@ export const resetCaptainPassword = asyncHandler(
 export const resetClientPassword = asyncHandler(
   async (req: Request, res: Response) => {
     const { phone, password } = req.body;
-    console.log(phone);
-    console.log(password);
     await adminService.resetClientPassword(phone, { password });
 
     res.status(StatusCodes.OK).json({

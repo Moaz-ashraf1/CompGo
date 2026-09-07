@@ -14,3 +14,18 @@ export const updateClient = async (
 ) => {
   return prisma.client.update({ where: { id }, data });
 };
+
+export const findAllClients = async () => {
+  return prisma.client.findMany({
+    select: {
+      id: true,
+      name: true,
+      phone: true,
+      gender: true,
+      status: true,
+      tripNum: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+};

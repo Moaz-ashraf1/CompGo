@@ -15,4 +15,10 @@ router.patch(
   validate(updateClientProfileSchema),
   clientController.updateMe,
 );
+router.get(
+  "/",
+  authenticate,
+  authorize("ADMIN"),
+  clientController.getAllClients,
+);
 export default router;

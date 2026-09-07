@@ -20,3 +20,13 @@ export const updateMe = asyncHandler(async (req: Request, res: Response) => {
     data: { client },
   });
 });
+
+export const getAllClients = asyncHandler(
+  async (req: Request, res: Response) => {
+    const clients = await clientService.getAllClientsForAdmin(); // 👈 هنا بتتنادى
+
+    res.status(StatusCodes.OK).json({
+      data: clients,
+    });
+  },
+);
