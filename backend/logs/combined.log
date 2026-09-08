@@ -334,3 +334,5 @@
 {"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-07T17:15:16.788Z"}
 {"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-07T17:15:43.084Z"}
 {"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-07T17:15:43.091Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-08T12:12:16.450Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-08T12:12:16.459Z"}
