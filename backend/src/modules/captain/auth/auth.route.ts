@@ -5,11 +5,15 @@ import {
 } from "../captain.validation.js";
 import * as authController from "./auth.controller.js";
 import { validate } from "../../../middlewares/validation.middleware.js";
+import { captainDocumentsUpload } from "../../../config/upload.js";
+import { attachCaptainDocuments } from "../../../middlewares/attachCaptainDocuments.js";
 
 const router = Router();
 
 router.post(
   "/register",
+  captainDocumentsUpload,
+  attachCaptainDocuments,
   validate(registerCaptainSchema),
   authController.registerCaptain,
 );

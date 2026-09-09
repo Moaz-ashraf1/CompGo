@@ -336,3 +336,14 @@
 {"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-07T17:15:43.091Z"}
 {"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-08T12:12:16.450Z"}
 {"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-08T12:12:16.459Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-09T06:17:15.476Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-09T06:17:15.486Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-09T06:21:24.336Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-09T06:21:24.345Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-09T06:23:05.283Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-09T06:23:05.296Z"}
+{"level":"error","message":"Unhandled error Captain already exists","method":"POST","name":"CaptainAlreadyExistsError","stack":"CaptainAlreadyExistsError: Captain already exists\n    at Module.registerCaptain (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\modules\\captain\\auth\\auth.service.ts:18:11)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async <anonymous> (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\modules\\captain\\auth\\auth.controller.ts:8:21)","timestamp":"2026-09-09T06:23:10.319Z","url":"/captainapi/v1/auth/register"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-09T06:23:42.681Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-09T06:23:42.692Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-09T06:24:56.000Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-09T06:24:56.015Z"}

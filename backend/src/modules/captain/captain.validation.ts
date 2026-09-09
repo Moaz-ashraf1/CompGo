@@ -13,9 +13,9 @@ export const registerCaptainSchema = z.object({
 
   gender: z.enum(["MALE", "FEMALE"]),
 
-  nationalIdImage: z.string().url("National ID image must be a valid URL"),
+  nationalIdImage: z.string().min(1),
 
-  licenseImage: z.string().url("License image must be a valid URL"),
+  licenseImage: z.string().min(1),
 
   vehicleNumber: z.string().min(2, "Vehicle number is required").max(50),
 

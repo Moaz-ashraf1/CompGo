@@ -40,11 +40,14 @@ export const registerCaptain = async (data: RegisterCaptainDTO) => {
   });
 
   return {
-    id: captain.id,
-    name: captain.name,
-    phone: captain.phone,
-    gender: captain.gender,
-    accountType: "CAPTAIN",
+    name: data.name,
+    phone: data.phone,
+    gender: data.gender,
+    nationalIdImage: data.nationalIdImage,
+    licenseImage: data.licenseImage,
+    vehicleNumber: data.vehicleNumber,
+    vehicleType: data.vehicleType,
+    vehicleModel: data.vehicleModel,
   };
 };
 

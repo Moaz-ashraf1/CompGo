@@ -9,7 +9,7 @@ export const registerCaptain = asyncHandler(
 
     res.status(StatusCodes.CREATED).json({
       status: "success",
-      data: { captain },
+      data: captain,
     });
   },
 );
