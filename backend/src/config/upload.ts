@@ -30,7 +30,7 @@ const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
 export const captainDocumentsUpload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB لكل صورة
+  limits: { fileSize: 5 * 1024 * 1024 }, 
 }).fields([
   { name: "nationalIdImage", maxCount: 1 },
   { name: "licenseImage", maxCount: 1 },
