@@ -9,7 +9,6 @@ import {
 
 export const getMe = async (captainId: string) => {
   const captain = await captainRepo.findCaptainById(captainId);
-  console.log(captain);
 
   if (!captain) {
     throw new InvalidCredentialsError();

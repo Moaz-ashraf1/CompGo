@@ -5,6 +5,23 @@ import type {
 } from "./captain.validation.js";
 import { CaptainStatus } from "../../generated/prisma/client.js";
 
+export const captainSafeSelect = {
+  id: true,
+  name: true,
+  phone: true,
+  gender: true,
+  nationalIdImage: true,
+  licenseImage: true,
+  vehicleNumber: true,
+  vehicleType: true,
+  vehicleModel: true,
+  amountDue: true,
+  status: true,
+  isAvailable: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
 export const findCaptainByPhone = async (phone: string) => {
   return prisma.captain.findUnique({
     where: {
@@ -22,6 +39,8 @@ export const findAllCaptains = async () => {
       id: true,
       name: true,
       phone: true,
+      nationalIdImage: true,
+      licenseImage: true,
       vehicleNumber: true,
       vehicleType: true,
       vehicleModel: true,
@@ -40,6 +59,7 @@ export const findCaptainById = async (id: string) => {
     where: {
       id,
     },
+    select: captainSafeSelect,
   });
 };
 
@@ -54,6 +74,7 @@ export const updateCaptainStatus = async (
     data: {
       status,
     },
+    select: captainSafeSelect,
   });
 };
 
@@ -65,6 +86,7 @@ export const resetCaptainAmountDue = async (id: string) => {
     data: {
       amountDue: 0,
     },
+    select: captainSafeSelect,
   });
 };
 
@@ -72,5 +94,9 @@ export const updateCaptain = async (
   id: string,
   data: { name?: string; phone?: string },
 ) => {
-  return prisma.captain.update({ where: { id }, data });
+  return prisma.captain.update({
+    where: { id },
+    data,
+    select: captainSafeSelect,
+  });
 };
