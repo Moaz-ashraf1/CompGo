@@ -100,3 +100,19 @@ export const updateCaptain = async (
     select: captainSafeSelect,
   });
 };
+
+export const updateAvailability = async (id: string, isAvailable: boolean) => {
+  return prisma.captain.update({
+    where: { id },
+    data: { isAvailable },
+    select: captainSafeSelect,
+  });
+};
+
+export const incrementAmountDue = async (id: string, amount: number) => {
+  return prisma.captain.update({
+    where: { id },
+    data: { amountDue: { increment: amount } },
+    select: captainSafeSelect,
+  });
+};

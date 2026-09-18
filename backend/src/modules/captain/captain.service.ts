@@ -6,6 +6,7 @@ import {
   InvalidCredentialsError,
   PhoneAlreadyInUseError,
 } from "../../exceptions/captain.exceptions.js";
+import * as tripService from "../trip/trip.service.js";
 
 export const getMe = async (captainId: string) => {
   const captain = await captainRepo.findCaptainById(captainId);
@@ -103,4 +104,14 @@ export const resetAmountDue = async (id: string) => {
   }
 
   return captainRepo.resetCaptainAmountDue(id);
+};
+
+export const getWallet = async (captainId: string) => {
+  return tripService.getCaptainWallet(captainId);
+};
+export const updateAvailability = async (
+  captainId: string,
+  isAvailable: boolean,
+) => {
+  return captainRepo.updateAvailability(captainId, isAvailable);
 };

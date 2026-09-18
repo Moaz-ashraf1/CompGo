@@ -81,3 +81,18 @@ export const resetAmountDue = asyncHandler(
     });
   },
 );
+
+export const getWallet = asyncHandler(async (req: Request, res: Response) => {
+  const wallet = await captainService.getWallet(req.user!.id);
+  res.status(StatusCodes.OK).json({ status: "success", data: wallet });
+});
+
+export const updateAvailability = asyncHandler(
+  async (req: Request, res: Response) => {
+    const captain = await captainService.updateAvailability(
+      req.user!.id,
+      req.body.isAvailable,
+    );
+    res.status(StatusCodes.OK).json({ status: "success", data: { captain } });
+  },
+);

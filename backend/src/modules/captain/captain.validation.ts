@@ -49,3 +49,9 @@ export type LoginCaptainDTO = z.infer<typeof loginCaptainSchema>;
 export type UpdateCaptainProfileDTO = z.infer<
   typeof updateCaptainProfileSchema
 >;
+
+export const updateAvailabilitySchema = z.object({
+  isAvailable: z.boolean(),
+});
+
+export type UpdateAvailabilityDTO = z.infer<typeof updateAvailabilitySchema>;

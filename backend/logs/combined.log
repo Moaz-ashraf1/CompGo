@@ -357,3 +357,101 @@
 {"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T04:44:13.726Z"}
 {"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T04:46:24.066Z"}
 {"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T04:46:24.073Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T04:50:00.162Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T04:50:00.166Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T04:51:14.826Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T04:51:14.830Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T04:51:37.974Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T04:51:37.979Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T04:52:07.534Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T04:52:07.539Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T04:53:50.579Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T04:53:50.583Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T04:54:25.599Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T04:54:25.603Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T04:54:47.736Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T04:54:47.741Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T04:55:43.380Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T04:55:43.385Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T04:56:12.732Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T04:56:12.738Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T04:56:43.972Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T04:56:43.977Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T04:56:47.430Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T04:56:47.437Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T04:57:28.831Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T04:57:28.837Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:00:17.028Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:00:17.033Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:00:41.155Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:00:41.160Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:00:48.986Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:00:48.991Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:00:53.374Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:00:53.379Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:01:04.376Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:01:04.383Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:01:20.898Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:01:20.905Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:01:27.961Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:01:27.966Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:01:34.822Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:01:34.827Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:01:49.396Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:01:49.401Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:02:36.606Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:02:36.612Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:04:33.470Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:04:33.486Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:05:37.245Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:05:37.262Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:06:32.165Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:06:32.174Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:06:50.140Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:06:50.146Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:07:08.603Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:07:08.608Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:07:17.265Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:07:17.276Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:07:45.150Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:07:45.157Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:07:57.297Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:07:57.310Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:08:33.528Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:08:33.537Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:08:38.858Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:08:38.864Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:08:50.751Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:08:50.757Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:08:53.184Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:08:53.189Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:09:23.618Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:09:23.631Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:09:29.571Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:09:29.577Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:10:25.417Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:10:25.422Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:10:37.505Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:10:37.511Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:10:46.727Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:10:46.736Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:10:57.367Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:10:57.385Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T05:11:09.172Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T05:11:09.179Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T12:23:21.962Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T12:23:21.967Z"}
+{"level":"error","message":"Unhandled error Invalid credentials","method":"POST","name":"InvalidCredentialsError","stack":"InvalidCredentialsError: Invalid credentials\n    at Module.loginClient (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\modules\\client\\auth\\auth.service.ts:38:22)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async <anonymous> (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\modules\\client\\auth\\auth.controller.ts:28:18)","timestamp":"2026-09-16T12:29:15.036Z","url":"/clientapi/v1/auth/login"}
+{"level":"error","message":"Unhandled error Invalid input: expected string, received undefined, Invalid option: expected one of \"MALE\"|\"FEMALE\"","method":"POST","name":"Error","stack":"Error: Invalid input: expected string, received undefined, Invalid option: expected one of \"MALE\"|\"FEMALE\"\n    at <anonymous> (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\middlewares\\validation.middleware.ts:19:21)\n    at Layer.handleRequest (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\index.js:582:12)\n    at next (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\index.js:291:5)\n    at router.handle (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\index.js:186:3)","timestamp":"2026-09-16T12:29:38.050Z","url":"/clientapi/v1/auth/register"}
+{"level":"error","message":"Unhandled error Invalid input: expected string, received undefined","method":"POST","name":"Error","stack":"Error: Invalid input: expected string, received undefined\n    at <anonymous> (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\src\\middlewares\\validation.middleware.ts:19:21)\n    at Layer.handleRequest (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at next (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\lib\\route.js:157:13)\n    at Route.dispatch (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\lib\\route.js:117:3)\n    at handle (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\index.js:435:11)\n    at Layer.handleRequest (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\lib\\layer.js:152:17)\n    at F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\index.js:295:15\n    at processParams (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\index.js:582:12)\n    at next (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\index.js:291:5)\n    at router.handle (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\router\\index.js:186:3)","timestamp":"2026-09-16T12:29:48.329Z","url":"/clientapi/v1/auth/register"}
+{"level":"error","message":"Unhandled error Expected double-quoted property name in JSON at position 111 (line 7 column 1)","method":"POST","name":"SyntaxError","stack":"SyntaxError: Expected double-quoted property name in JSON at position 111 (line 7 column 1)\n    at JSON.parse (<anonymous>)\n    at parse (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\body-parser\\lib\\types\\json.js:91:21)\n    at F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\body-parser\\lib\\read.js:162:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:226:14)\n    at invokeCallback (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\raw-body\\index.js:238:16)\n    at done (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\raw-body\\index.js:287:7)\n    at IncomingMessage.emit (node:events:508:20)\n    at endReadableNT (node:internal/streams/readable:1729:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)","timestamp":"2026-09-16T12:30:12.325Z","url":"/clientapi/v1/auth/register"}
+{"level":"error","message":"Unhandled error Unexpected token 'P', \"POST\r\nhttp\"... is not valid JSON","method":"POST","name":"SyntaxError","stack":"SyntaxError: Unexpected token 'P', \"POST\r\nhttp\"... is not valid JSON\n    at JSON.parse (<anonymous>)\n    at createStrictSyntaxError (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\body-parser\\lib\\types\\json.js:137:10)\n    at parse (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\body-parser\\lib\\types\\json.js:86:15)\n    at F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\body-parser\\lib\\read.js:162:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:226:14)\n    at invokeCallback (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\raw-body\\index.js:238:16)\n    at done (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\raw-body\\index.js:287:7)\n    at IncomingMessage.emit (node:events:508:20)\n    at endReadableNT (node:internal/streams/readable:1729:12)","timestamp":"2026-09-16T13:13:54.860Z","url":"/clientapi/v1/trips"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T13:17:16.493Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T13:17:16.500Z"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-16T13:21:32.576Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-16T13:21:32.582Z"}
+{"level":"error","message":"Unhandled error Unexpected token 'P', \"POST\r\nhttp\"... is not valid JSON","method":"POST","name":"SyntaxError","stack":"SyntaxError: Unexpected token 'P', \"POST\r\nhttp\"... is not valid JSON\n    at JSON.parse (<anonymous>)\n    at createStrictSyntaxError (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\body-parser\\lib\\types\\json.js:137:10)\n    at parse (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\body-parser\\lib\\types\\json.js:86:15)\n    at F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\body-parser\\lib\\read.js:162:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:226:14)\n    at invokeCallback (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\raw-body\\index.js:238:16)\n    at done (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\raw-body\\index.js:287:7)\n    at IncomingMessage.emit (node:events:508:20)\n    at endReadableNT (node:internal/streams/readable:1729:12)","timestamp":"2026-09-16T13:23:01.088Z","url":"/clientapi/v1/trips"}
+{"level":"error","message":"Unhandled error Unexpected token 'P', \"POST\r\nhttp\"... is not valid JSON","method":"POST","name":"SyntaxError","stack":"SyntaxError: Unexpected token 'P', \"POST\r\nhttp\"... is not valid JSON\n    at JSON.parse (<anonymous>)\n    at createStrictSyntaxError (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\body-parser\\lib\\types\\json.js:137:10)\n    at parse (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\body-parser\\lib\\types\\json.js:86:15)\n    at F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\body-parser\\lib\\read.js:162:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:226:14)\n    at invokeCallback (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\raw-body\\index.js:238:16)\n    at done (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\raw-body\\index.js:287:7)\n    at IncomingMessage.emit (node:events:508:20)\n    at endReadableNT (node:internal/streams/readable:1729:12)","timestamp":"2026-09-16T13:23:09.607Z","url":"/clientapi/v1/trips"}
+{"level":"error","message":"Unhandled error Unexpected token 'P', \"POST\r\nhttp\"... is not valid JSON","method":"POST","name":"SyntaxError","stack":"SyntaxError: Unexpected token 'P', \"POST\r\nhttp\"... is not valid JSON\n    at JSON.parse (<anonymous>)\n    at createStrictSyntaxError (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\body-parser\\lib\\types\\json.js:137:10)\n    at parse (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\body-parser\\lib\\types\\json.js:86:15)\n    at F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\body-parser\\lib\\read.js:162:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:226:14)\n    at invokeCallback (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\raw-body\\index.js:238:16)\n    at done (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (F:\\Users\\moaz0\\OneDrive\\Desktop\\CompGo\\backend\\node_modules\\raw-body\\index.js:287:7)\n    at IncomingMessage.emit (node:events:508:20)\n    at endReadableNT (node:internal/streams/readable:1729:12)","timestamp":"2026-09-16T13:23:18.662Z","url":"/clientapi/v1/trips"}
+{"level":"info","message":"Connected to DB (Prisma)","timestamp":"2026-09-17T04:00:40.331Z"}
+{"env":"development","level":"info","message":"Server running","port":3000,"timestamp":"2026-09-17T04:00:40.336Z"}

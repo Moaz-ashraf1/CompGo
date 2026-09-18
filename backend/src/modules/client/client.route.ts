@@ -4,9 +4,11 @@ import * as clientController from "./client.controller.js";
 import { authenticate, authorize } from "../../middlewares/auth.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import { updateClientProfileSchema } from "./client.validation.js";
+import tripRouter from "../trip/trip.route.js";
 const router = Router();
 
 router.use("/auth", authRouter);
+router.use("/trips", tripRouter);
 router.get("/me", authenticate, authorize("CLIENT"), clientController.getMe);
 router.patch(
   "/me",

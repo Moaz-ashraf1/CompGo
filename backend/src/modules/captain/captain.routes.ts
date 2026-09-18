@@ -1,13 +1,18 @@
 import { Router } from "express";
 import * as captainController from "./captain.controller.js";
-import { updateCaptainProfileSchema } from "./captain.validation.js";
+import {
+  updateCaptainProfileSchema,
+  updateAvailabilitySchema,
+} from "./captain.validation.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import authRouter from "./auth/auth.route.js";
 import { authenticate, authorize } from "../../middlewares/auth.js";
+import tripRouter from "./trip/trip.route.js";
 
 const router = Router();
 
 router.use("/auth", authRouter);
+router.use("/trips", tripRouter);
 
 router.get("/me", authenticate, authorize("CAPTAIN"), captainController.getMe);
 router.patch(
@@ -16,6 +21,19 @@ router.patch(
   authorize("CAPTAIN"),
   validate(updateCaptainProfileSchema),
   captainController.updateMe,
+);
+router.get(
+  "/wallet",
+  authenticate,
+  authorize("CAPTAIN"),
+  captainController.getWallet,
+);
+router.patch(
+  "/availability",
+  authenticate,
+  authorize("CAPTAIN"),
+  validate(updateAvailabilitySchema),
+  captainController.updateAvailability,
 );
 
 router.get(
