@@ -48,6 +48,12 @@ enum AccountRole {
   ADMIN
 }
 
+enum PaymentMethod {
+  CASH
+  INSTAPAY
+  WALLET
+}
+
 model Admin {
   id           String   @id @default(uuid())
   username     String   @unique
@@ -136,6 +142,19 @@ model PricingConfig {
    distanceKm       Decimal?   @db.Decimal(10, 2)
    price            Decimal    @db.Decimal(10, 2)
    cancelReason     String?
+   paymentMethod    PaymentMethod @default(CASH)
+   // Advance-booking details, currently only meaningful for AIRPORT trips.
+   // A trip is still created and matched immediately on request either
+   // way - there's no scheduler yet that holds a trip until scheduledAt.
+   scheduledAt      DateTime?
+   passengers       Int?
+   luggageCount     Int?
+   flightNumber     String?
+   // Set once by the client after a COMPLETED trip (see trip.service.ts
+   // -> rateTrip). 1-5, enforced in trip.validation.ts, not at the DB
+   // level.
+   rating           Int?
+   ratingComment    String?
    requestedAt      DateTime   @default(now())
    acceptedAt       DateTime?
    startedAt        DateTime?

@@ -96,3 +96,13 @@ export const updateAvailability = asyncHandler(
     res.status(StatusCodes.OK).json({ status: "success", data: { captain } });
   },
 );
+
+export const changePassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    await captainService.changePassword(req.user!.id, req.body);
+    res.status(StatusCodes.OK).json({
+      status: "success",
+      message: "Password changed successfully",
+    });
+  },
+);

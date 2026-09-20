@@ -63,6 +63,27 @@ export const findCaptainById = async (id: string) => {
   });
 };
 
+export const captainPublicSelect = {
+  id: true,
+  name: true,
+  phone: true,
+  vehicleType: true,
+  vehicleModel: true,
+  vehicleNumber: true,
+} as const;
+
+/// Batch lookup for attaching public captain info to trip responses
+/// (e.g. so a client can see who picked up their trip) - deliberately a
+/// narrower projection than `captainSafeSelect` (no status/amountDue/
+/// documents/isAvailable).
+export const findCaptainsPublicByIds = async (ids: string[]) => {
+  if (ids.length === 0) return [];
+  return prisma.captain.findMany({
+    where: { id: { in: ids } },
+    select: captainPublicSelect,
+  });
+};
+
 export const updateCaptainStatus = async (
   id: string,
   status: CaptainStatus,
@@ -99,6 +120,22 @@ export const updateCaptain = async (
     data,
     select: captainSafeSelect,
   });
+};
+
+/// Only for the change-password flow (needs the current hash to verify
+/// against) - never exposed outside captain.service.ts's changePassword.
+export const findCaptainAuthById = async (id: string) => {
+  return prisma.captain.findUnique({
+    where: { id },
+    select: { id: true, passwordHash: true },
+  });
+};
+
+export const updateCaptainPassword = async (
+  id: string,
+  passwordHash: string,
+) => {
+  return prisma.captain.update({ where: { id }, data: { passwordHash } });
 };
 
 export const updateAvailability = async (id: string, isAvailable: boolean) => {

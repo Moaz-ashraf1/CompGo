@@ -13,3 +13,12 @@ export const updateClientProfileSchema = z
   });
 
 export type UpdateClientProfileDTO = z.infer<typeof updateClientProfileSchema>;
+
+export const changeClientPasswordSchema = z.object({
+  currentPassword: z.string().min(8),
+  newPassword: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+export type ChangeClientPasswordDTO = z.infer<
+  typeof changeClientPasswordSchema
+>;

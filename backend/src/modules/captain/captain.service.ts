@@ -1,11 +1,16 @@
 import * as captainRepo from "./captain.repository.js";
+import * as authRepo from "../auth/auth.repository.js";
 import * as captainExceptions from "../../exceptions/captain.exceptions.js";
-import type { UpdateCaptainProfileDTO } from "./captain.validation.js";
+import type {
+  UpdateCaptainProfileDTO,
+  ChangeCaptainPasswordDTO,
+} from "./captain.validation.js";
 import { CaptainStatus } from "../../generated/prisma/client.js";
 import {
   InvalidCredentialsError,
   PhoneAlreadyInUseError,
 } from "../../exceptions/captain.exceptions.js";
+import { comparePassword, hashPassword } from "../../utils/hash.js";
 import * as tripService from "../trip/trip.service.js";
 
 export const getMe = async (captainId: string) => {
@@ -15,14 +20,11 @@ export const getMe = async (captainId: string) => {
     throw new InvalidCredentialsError();
   }
 
-  return {
-    id: captain.id,
-    name: captain.name,
-    phone: captain.phone,
-    gender: captain.gender,
-    status: captain.status,
-    amountDue: captain.amountDue,
-  };
+  // `findCaptainById` already uses `captainSafeSelect` (no passwordHash),
+  // so return it as-is instead of re-picking a handful of fields - that
+  // was silently dropping vehicle info and `isAvailable` from every
+  // GET /me response even after the DB/repository grew those fields.
+  return captain;
 };
 
 export const updateMe = async (
@@ -42,16 +44,7 @@ export const updateMe = async (
     }
   }
 
-  const updated = await captainRepo.updateCaptain(captainId, data);
-
-  return {
-    id: updated.id,
-    name: updated.name,
-    phone: updated.phone,
-    gender: updated.gender,
-    status: updated.status,
-    amountDue: updated.amountDue,
-  };
+  return captainRepo.updateCaptain(captainId, data);
 };
 
 export const getAllCaptains = async () => {
@@ -104,6 +97,30 @@ export const resetAmountDue = async (id: string) => {
   }
 
   return captainRepo.resetCaptainAmountDue(id);
+};
+
+export const changePassword = async (
+  captainId: string,
+  data: ChangeCaptainPasswordDTO,
+) => {
+  const captain = await captainRepo.findCaptainAuthById(captainId);
+  if (!captain) {
+    throw new InvalidCredentialsError();
+  }
+
+  const isCurrentValid = await comparePassword(
+    data.currentPassword,
+    captain.passwordHash,
+  );
+  if (!isCurrentValid) {
+    throw new InvalidCredentialsError("Current password is incorrect");
+  }
+
+  const passwordHash = await hashPassword(data.newPassword);
+  await captainRepo.updateCaptainPassword(captainId, passwordHash);
+
+  // Force re-login everywhere else, same as an admin-triggered reset.
+  await authRepo.revokeAllByAccount(captainId);
 };
 
 export const getWallet = async (captainId: string) => {

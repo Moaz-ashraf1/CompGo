@@ -2,9 +2,14 @@ import * as tripRepo from "./trip.repository.js";
 import * as boundaryRepo from "../compound-boundary/compound-boundary.repository.js";
 import * as pricingRepo from "../pricing/pricing.repository.js";
 import * as captainRepo from "../captain/captain.repository.js";
+import * as clientRepo from "../client/client.repo.js";
 import { isPointInsidePolygon, haversineDistanceKm } from "../../utils/geo.js";
 import { TripStatus, TripType } from "../../generated/prisma/client.js";
-import type { CreateTripDTO, CancelTripDTO } from "./trip.validation.js";
+import type {
+  CreateTripDTO,
+  CancelTripDTO,
+  RateTripDTO,
+} from "./trip.validation.js";
 import { CaptainNotFoundError } from "../../exceptions/captain.exceptions.js";
 import {
   TripNotFoundError,
@@ -16,6 +21,52 @@ import {
   NoCompoundBoundaryError,
   NoPricingConfigError,
 } from "../../exceptions/trip.exceptions.js";
+
+// Trip rows only ever carry raw `clientId`/`captainId` strings - these
+// batch-attach the *public* profile of whichever party is relevant, so
+// trip responses are actually usable in the apps (who is this from/who
+// picked this up). Phone numbers are only attached once a client and
+// captain are already tied together by the trip (assigned captain, or a
+// trip that's already "theirs"), never for the general available-trips
+// list every captain can browse before anyone has accepted.
+const attachClientInfo = async <T extends { clientId: string }>(
+  trips: T[],
+  { withPhone }: { withPhone: boolean },
+) => {
+  const ids = [...new Set(trips.map((t) => t.clientId))];
+  const clients = withPhone
+    ? await clientRepo.findClientsPublicByIds(ids)
+    : await clientRepo.findClientsNameOnlyByIds(ids);
+  const byId = new Map(clients.map((c) => [c.id, c]));
+  return trips.map((trip) => ({ ...trip, client: byId.get(trip.clientId) ?? null }));
+};
+
+const attachCaptainInfo = async <T extends { captainId: string | null }>(
+  trips: T[],
+) => {
+  const ids = [
+    ...new Set(
+      trips
+        .map((t) => t.captainId)
+        .filter((id): id is string => id !== null),
+    ),
+  ];
+  const captains = await captainRepo.findCaptainsPublicByIds(ids);
+  const byId = new Map(captains.map((c) => [c.id, c]));
+  return trips.map((trip) => ({
+    ...trip,
+    captain: trip.captainId ? (byId.get(trip.captainId) ?? null) : null,
+  }));
+};
+
+const attachClientInfoOne = async <T extends { clientId: string }>(
+  trip: T,
+  opts: { withPhone: boolean },
+) => (await attachClientInfo([trip], opts))[0]!;
+
+const attachCaptainInfoOne = async <T extends { captainId: string | null }>(
+  trip: T,
+) => (await attachCaptainInfo([trip]))[0]!;
 
 const resolveIsInsideCompound = async (lat: number, lng: number) => {
   const boundary = await boundaryRepo.findBoundary();
@@ -84,18 +135,47 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
     distanceKm,
     price,
     status: TripStatus.REQUESTED,
+    paymentMethod: data.paymentMethod ?? "CASH",
+    scheduledAt: data.scheduledAt ?? null,
+    passengers: data.passengers ?? null,
+    luggageCount: data.luggageCount ?? null,
+    flightNumber: data.flightNumber ?? null,
   });
 };
 
 export const getClientTrips = async (clientId: string) => {
-  return tripRepo.findTripsByClient(clientId);
+  const trips = await tripRepo.findTripsByClient(clientId);
+  return attachCaptainInfo(trips);
 };
 
 export const getClientTripById = async (clientId: string, tripId: string) => {
   const trip = await tripRepo.findTripById(tripId);
   if (!trip) throw new TripNotFoundError();
   if (trip.clientId !== clientId) throw new NotYourTripError();
-  return trip;
+  return attachCaptainInfoOne(trip);
+};
+
+export const rateTrip = async (
+  clientId: string,
+  tripId: string,
+  data: RateTripDTO,
+) => {
+  const trip = await tripRepo.findTripById(tripId);
+  if (!trip) throw new TripNotFoundError();
+  if (trip.clientId !== clientId) throw new NotYourTripError();
+
+  if (trip.status !== TripStatus.COMPLETED) {
+    throw new InvalidTripStatusError("Only a completed trip can be rated");
+  }
+  if (trip.rating !== null) {
+    throw new InvalidTripStatusError("This trip has already been rated");
+  }
+
+  const rated = await tripRepo.updateTripStatus(tripId, {
+    rating: data.rating,
+    ratingComment: data.comment ?? null,
+  });
+  return attachCaptainInfoOne(rated);
 };
 
 export const cancelClientTrip = async (
@@ -114,15 +194,17 @@ export const cancelClientTrip = async (
     );
   }
 
-  return tripRepo.updateTripStatus(tripId, {
+  const cancelled = await tripRepo.updateTripStatus(tripId, {
     status: TripStatus.CANCELLED,
     cancelledAt: new Date(),
     cancelReason: data.reason ?? null,
   });
+  return attachCaptainInfoOne(cancelled);
 };
 
 export const getAvailableTrips = async () => {
-  return tripRepo.findAvailableTrips();
+  const trips = await tripRepo.findAvailableTrips();
+  return attachClientInfo(trips, { withPhone: false });
 };
 
 export const acceptTrip = async (captainId: string, tripId: string) => {
@@ -132,7 +214,8 @@ export const acceptTrip = async (captainId: string, tripId: string) => {
   const accepted = await tripRepo.acceptTrip(tripId, captainId);
   if (!accepted) throw new TripAlreadyTakenError();
 
-  return tripRepo.findTripById(tripId);
+  const updated = await tripRepo.findTripById(tripId);
+  return attachClientInfoOne(updated!, { withPhone: true });
 };
 
 const getCaptainTripOrThrow = async (captainId: string, tripId: string) => {
@@ -151,10 +234,11 @@ export const startTrip = async (captainId: string, tripId: string) => {
     );
   }
 
-  return tripRepo.updateTripStatus(tripId, {
+  const started = await tripRepo.updateTripStatus(tripId, {
     status: TripStatus.IN_PROGRESS,
     startedAt: new Date(),
   });
+  return attachClientInfoOne(started, { withPhone: true });
 };
 
 export const completeTrip = async (captainId: string, tripId: string) => {
@@ -180,7 +264,7 @@ export const completeTrip = async (captainId: string, tripId: string) => {
     captainRepo.incrementAmountDue(captainId, commission),
   ]);
 
-  return updatedTrip;
+  return attachClientInfoOne(updatedTrip, { withPhone: true });
 };
 
 export const cancelCaptainTrip = async (
@@ -196,28 +280,31 @@ export const cancelCaptainTrip = async (
     );
   }
 
-  return tripRepo.updateTripStatus(tripId, {
+  const cancelled = await tripRepo.updateTripStatus(tripId, {
     status: TripStatus.CANCELLED,
     cancelledAt: new Date(),
     cancelReason: data.reason ?? null,
   });
+  return attachClientInfoOne(cancelled, { withPhone: true });
 };
 
 export const getCaptainTrips = async (
   captainId: string,
   filters: { type?: TripType; status?: TripStatus } = {},
 ) => {
-  return tripRepo.findTripsByCaptain(captainId, filters);
+  const trips = await tripRepo.findTripsByCaptain(captainId, filters);
+  return attachClientInfo(trips, { withPhone: true });
 };
 
 export const getAllTrips = async () => {
-  return tripRepo.findAllTrips();
+  const trips = await tripRepo.findAllTrips();
+  return attachCaptainInfo(await attachClientInfo(trips, { withPhone: true }));
 };
 
 export const getTripById = async (tripId: string) => {
   const trip = await tripRepo.findTripById(tripId);
   if (!trip) throw new TripNotFoundError();
-  return trip;
+  return attachCaptainInfoOne(await attachClientInfoOne(trip, { withPhone: true }));
 };
 
 export const getCaptainWallet = async (captainId: string) => {

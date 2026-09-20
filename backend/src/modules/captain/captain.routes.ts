@@ -3,11 +3,13 @@ import * as captainController from "./captain.controller.js";
 import {
   updateCaptainProfileSchema,
   updateAvailabilitySchema,
+  changeCaptainPasswordSchema,
 } from "./captain.validation.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import authRouter from "./auth/auth.route.js";
 import { authenticate, authorize } from "../../middlewares/auth.js";
 import tripRouter from "./trip/trip.route.js";
+import * as pricingController from "../pricing/pricing.controller.js";
 
 const router = Router();
 
@@ -34,6 +36,19 @@ router.patch(
   authorize("CAPTAIN"),
   validate(updateAvailabilitySchema),
   captainController.updateAvailability,
+);
+router.patch(
+  "/me/password",
+  authenticate,
+  authorize("CAPTAIN"),
+  validate(changeCaptainPasswordSchema),
+  captainController.changePassword,
+);
+router.get(
+  "/pricing",
+  authenticate,
+  authorize("CAPTAIN"),
+  pricingController.getPublicPricing,
 );
 
 router.get(

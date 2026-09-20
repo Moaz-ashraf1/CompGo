@@ -28,3 +28,9 @@ export const cancelTrip = asyncHandler(async (req: Request, res: Response) => {
   );
   res.status(StatusCodes.OK).json({ status: "success", data: { trip } });
 });
+
+export const rateTrip = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const trip = await tripService.rateTrip(req.user!.id, id as string, req.body);
+  res.status(StatusCodes.OK).json({ status: "success", data: { trip } });
+});

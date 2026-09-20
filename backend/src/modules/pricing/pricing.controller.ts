@@ -9,6 +9,13 @@ export const getPricing = asyncHandler(async (req: Request, res: Response) => {
   res.status(StatusCodes.OK).json({ data: pricing });
 });
 
+export const getPublicPricing = asyncHandler(
+  async (req: Request, res: Response) => {
+    const pricing = await pricingService.getPublicPricing();
+    res.status(StatusCodes.OK).json({ status: "success", data: pricing });
+  },
+);
+
 export const updatePricing = asyncHandler(async (req: Request, res: Response) => {
   const pricing = await pricingService.updatePricing(req.body);
 

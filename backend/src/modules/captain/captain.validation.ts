@@ -55,3 +55,12 @@ export const updateAvailabilitySchema = z.object({
 });
 
 export type UpdateAvailabilityDTO = z.infer<typeof updateAvailabilitySchema>;
+
+export const changeCaptainPasswordSchema = z.object({
+  currentPassword: z.string().min(8),
+  newPassword: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+export type ChangeCaptainPasswordDTO = z.infer<
+  typeof changeCaptainPasswordSchema
+>;

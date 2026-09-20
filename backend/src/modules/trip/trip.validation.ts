@@ -9,6 +9,14 @@ export const createTripSchema = z
     dropoffLat: z.number().min(-90).max(90).optional(),
     dropoffLng: z.number().min(-180).max(180).optional(),
     dropoffLabel: z.string().min(2).max(150).optional(),
+    paymentMethod: z.enum(["CASH", "INSTAPAY", "WALLET"]).optional(),
+    // Advance-booking details - currently accepted and stored, but the
+    // trip is still matched immediately on request (no scheduler holds it
+    // until scheduledAt yet). Only meaningful for AIRPORT trips.
+    scheduledAt: z.coerce.date().optional(),
+    passengers: z.number().int().min(1).max(20).optional(),
+    luggageCount: z.number().int().min(0).max(20).optional(),
+    flightNumber: z.string().max(20).optional(),
   })
   .refine(
     (data) =>
@@ -29,3 +37,10 @@ export const cancelTripSchema = z.object({
 });
 
 export type CancelTripDTO = z.infer<typeof cancelTripSchema>;
+
+export const rateTripSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().max(500).optional(),
+});
+
+export type RateTripDTO = z.infer<typeof rateTripSchema>;

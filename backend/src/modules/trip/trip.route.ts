@@ -5,6 +5,7 @@ import { validate } from "./../../middlewares/validation.middleware.js";
 import {
   createTripSchema,
   cancelTripSchema,
+  rateTripSchema,
 } from "./../trip/trip.validation.js";
 
 const router = Router();
@@ -18,6 +19,11 @@ router.patch(
   "/:id/cancel",
   validate(cancelTripSchema),
   tripController.cancelTrip,
+);
+router.patch(
+  "/:id/rate",
+  validate(rateTripSchema),
+  tripController.rateTrip,
 );
 
 export default router;
