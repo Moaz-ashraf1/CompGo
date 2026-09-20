@@ -1,9 +1,11 @@
 
 
 .env
+.env.dev
 node_modules/
 src/generated/
 .agents/
 .claude/
 .windsurf/
 uploads/
+logs/

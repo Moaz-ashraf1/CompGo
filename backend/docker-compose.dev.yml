@@ -1,0 +1,50 @@
+# Separate stack for dev.api.ingateapp.tech - completely isolated from the
+# production stack in docker-compose.yml (own containers, own network, own
+# named volume, own ports), so it can run on the same host without
+# touching production at all.
+#
+# Usage (from the backend/ folder, on the server):
+#   cp .env.dev.example .env.dev   # fill in real values
+#   docker compose -f docker-compose.dev.yml --env-file .env.dev up -d --build
+#
+# This brings up:
+#   - a dedicated dev Postgres (host port 5434 -> container 5432)
+#   - the backend, migrated + built fresh, on host port 3001
+# See DEV_DEPLOYMENT.md for the DNS/reverse-proxy steps that make
+# dev.api.ingateapp.tech actually point at port 3001.
+
+name: compgo-dev
+
+services:
+  postgres-dev:
+    image: postgres:16-alpine
+    container_name: compgo-postgres-dev
+    restart: always
+    environment:
+      - POSTGRES_USER=compgo_dev_user
+      - POSTGRES_PASSWORD=${DEV_DB_PASSWORD}
+      - POSTGRES_DB=compgo_dev
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+
+  backend-dev:
+    build: .
+    container_name: compgo-backend-dev
+    restart: always
+    ports:
+      - "3001:3000"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://compgo_dev_user:${DEV_DB_PASSWORD}@postgres-dev:5432/compgo_dev
+      ACCESS_TOKEN_SECRET: ${DEV_ACCESS_TOKEN_SECRET}
+    # The production image's CMD skips migrations (whoever set it up must
+    # have run them by hand once) - for a dev box that gets rebuilt/reset
+    # more often, apply pending migrations on every start instead.
+    command: sh -c "npx prisma migrate deploy && npx tsx src/server.ts"
+    depends_on:
+      - postgres-dev
+
+volumes:
+  pgdata_dev:
