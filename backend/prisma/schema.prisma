@@ -112,6 +112,22 @@ model RefreshToken {
   @@index([familyId])
 }
 
+/// One row per device a captain/client has notifications enabled on.
+/// `token` is unique per install - re-registering the same device just
+/// updates `accountId`/`updatedAt` in place (covers logging into a
+/// different account on the same phone).
+model DeviceToken {
+  id        String      @id @default(uuid())
+  accountId String
+  role      AccountRole
+  token     String      @unique
+  platform  String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([accountId])
+}
+
 model CompoundBoundary {
   id        String   @id @default(uuid())
   points    Json

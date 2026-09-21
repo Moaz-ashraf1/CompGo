@@ -9,6 +9,11 @@ import {
 } from "./client.validation.js";
 import tripRouter from "../trip/trip.route.js";
 import * as pricingController from "../pricing/pricing.controller.js";
+import * as deviceTokenController from "../device-token/device-token.controller.js";
+import {
+  registerDeviceTokenSchema,
+  removeDeviceTokenSchema,
+} from "../device-token/device-token.validation.js";
 const router = Router();
 
 router.use("/auth", authRouter);
@@ -33,6 +38,20 @@ router.patch(
   authorize("CLIENT"),
   validate(changeClientPasswordSchema),
   clientController.changePassword,
+);
+router.patch(
+  "/me/device-token",
+  authenticate,
+  authorize("CLIENT"),
+  validate(registerDeviceTokenSchema),
+  deviceTokenController.registerDeviceToken,
+);
+router.delete(
+  "/me/device-token",
+  authenticate,
+  authorize("CLIENT"),
+  validate(removeDeviceTokenSchema),
+  deviceTokenController.removeDeviceToken,
 );
 router.get(
   "/",

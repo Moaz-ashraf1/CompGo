@@ -8,6 +8,7 @@ import {
   emitToCaptain,
   emitToCaptainsBroadcast,
 } from "../../realtime/socket.js";
+import { pushToAccount, pushToAllCaptains } from "../../realtime/push.js";
 import { isPointInsidePolygon, haversineDistanceKm } from "../../utils/geo.js";
 import { TripStatus, TripType } from "../../generated/prisma/client.js";
 import type {
@@ -118,6 +119,12 @@ const calculatePrice = async (params: {
 };
 
 const AIRPORT_LABEL = "مطار القاهرة الدولي";
+
+const TYPE_LABELS: Record<TripType, string> = {
+  RIDE: "رحلة",
+  ORDER: "طلب",
+  AIRPORT: "مطار",
+};
 export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
   const isInsideCompound = await resolveIsInsideCompound(
     data.pickupLat,
@@ -163,6 +170,11 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
 
   const [withClient] = await attachClientInfo([created], { withPhone: false });
   emitToCaptainsBroadcast("trip:new", withClient);
+  void pushToAllCaptains({
+    title: "طلب جديد",
+    body: `طلب ${TYPE_LABELS[data.type as TripType]} جديد بالقرب منك`,
+    data: { tripId: created.id, type: "trip:new" },
+  });
 
   return created;
 };
@@ -235,6 +247,11 @@ export const cancelClientTrip = async (
     // not the captain-attached shape this function returns to the client.
     const forCaptain = await attachClientInfoOne(cancelled, { withPhone: true });
     emitToCaptain(trip.captainId, "trip:updated", forCaptain);
+    void pushToAccount(trip.captainId, {
+      title: "تم إلغاء الرحلة",
+      body: "العميل ألغى الرحلة",
+      data: { tripId, type: "trip:updated" },
+    });
   }
 
   return attachCaptainInfoOne(cancelled);
@@ -259,6 +276,11 @@ export const acceptTrip = async (captainId: string, tripId: string) => {
   // The client sees *captain* info attached (who picked them up), not the
   // client-attached shape this function returns to the accepting captain.
   emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(updated!));
+  void pushToAccount(trip.clientId, {
+    title: "تم قبول رحلتك",
+    body: "الكابتن في الطريق إليك",
+    data: { tripId, type: "trip:updated" },
+  });
 
   return forCaptain;
 };
@@ -284,6 +306,11 @@ export const startTrip = async (captainId: string, tripId: string) => {
     startedAt: new Date(),
   });
   emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(started));
+  void pushToAccount(trip.clientId, {
+    title: "بدأت رحلتك",
+    body: "وصلة سعيدة!",
+    data: { tripId, type: "trip:updated" },
+  });
   return attachClientInfoOne(started, { withPhone: true });
 };
 
@@ -311,6 +338,11 @@ export const completeTrip = async (captainId: string, tripId: string) => {
   ]);
 
   emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(updatedTrip));
+  void pushToAccount(trip.clientId, {
+    title: "اكتملت رحلتك",
+    body: "وصلت بأمان! قيّم رحلتك دلوقتي",
+    data: { tripId, type: "trip:updated" },
+  });
   return attachClientInfoOne(updatedTrip, { withPhone: true });
 };
 
@@ -333,6 +365,11 @@ export const cancelCaptainTrip = async (
     cancelReason: data.reason ?? null,
   });
   emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(cancelled));
+  void pushToAccount(trip.clientId, {
+    title: "تم إلغاء رحلتك",
+    body: "الكابتن ألغى الرحلة، حاول تاني",
+    data: { tripId, type: "trip:updated" },
+  });
   return attachClientInfoOne(cancelled, { withPhone: true });
 };
 

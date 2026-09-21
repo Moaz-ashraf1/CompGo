@@ -11,6 +11,11 @@ import authRouter from "./auth/auth.route.js";
 import { authenticate, authorize } from "../../middlewares/auth.js";
 import tripRouter from "./trip/trip.route.js";
 import * as pricingController from "../pricing/pricing.controller.js";
+import * as deviceTokenController from "../device-token/device-token.controller.js";
+import {
+  registerDeviceTokenSchema,
+  removeDeviceTokenSchema,
+} from "../device-token/device-token.validation.js";
 
 const router = Router();
 
@@ -63,6 +68,20 @@ router.get(
   authenticate,
   authorize("CAPTAIN"),
   pricingController.getPublicPricing,
+);
+router.patch(
+  "/me/device-token",
+  authenticate,
+  authorize("CAPTAIN"),
+  validate(registerDeviceTokenSchema),
+  deviceTokenController.registerDeviceToken,
+);
+router.delete(
+  "/me/device-token",
+  authenticate,
+  authorize("CAPTAIN"),
+  validate(removeDeviceTokenSchema),
+  deviceTokenController.removeDeviceToken,
 );
 
 router.get(
