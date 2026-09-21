@@ -16,6 +16,7 @@ import {
   registerDeviceTokenSchema,
   removeDeviceTokenSchema,
 } from "../device-token/device-token.validation.js";
+import * as notificationController from "../notification/notification.controller.js";
 
 const router = Router();
 
@@ -82,6 +83,27 @@ router.delete(
   authorize("CAPTAIN"),
   validate(removeDeviceTokenSchema),
   deviceTokenController.removeDeviceToken,
+);
+// Registered before the ADMIN "/:id" catch-all below - "notifications"
+// would otherwise match it as an :id and 403 (see the wallet/trips bug
+// from earlier: a named route after a param catch-all gets shadowed).
+router.get(
+  "/notifications",
+  authenticate,
+  authorize("CAPTAIN"),
+  notificationController.getNotifications,
+);
+router.patch(
+  "/notifications/read-all",
+  authenticate,
+  authorize("CAPTAIN"),
+  notificationController.markAllRead,
+);
+router.patch(
+  "/notifications/:id/read",
+  authenticate,
+  authorize("CAPTAIN"),
+  notificationController.markRead,
 );
 
 router.get(

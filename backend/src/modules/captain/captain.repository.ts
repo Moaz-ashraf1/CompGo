@@ -22,6 +22,13 @@ export const captainSafeSelect = {
   updatedAt: true,
 } as const;
 
+/// Just IDs - used to fan a notification out to every captain (see
+/// notification.service.ts -> notifyAllCaptains), where the full profile
+/// select would be wasted work.
+export const findAllCaptainIds = async () => {
+  return prisma.captain.findMany({ select: { id: true } });
+};
+
 export const findCaptainByPhone = async (phone: string) => {
   return prisma.captain.findUnique({
     where: {

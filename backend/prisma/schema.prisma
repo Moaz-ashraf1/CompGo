@@ -128,6 +128,24 @@ model DeviceToken {
   @@index([accountId])
 }
 
+/// A persisted record of every push notification the backend ever sent -
+/// exists independently of whether FCM is configured or the send actually
+/// succeeded, so the in-app "كل الإشعارات" list always has real history
+/// even before/without a working push channel. `data` mirrors the same
+/// payload sent over the socket/push channels (e.g. {tripId, type}).
+model Notification {
+  id        String      @id @default(uuid())
+  accountId String
+  role      AccountRole
+  title     String
+  body      String
+  data      Json?
+  read      Boolean     @default(false)
+  createdAt DateTime    @default(now())
+
+  @@index([accountId, createdAt])
+}
+
 model CompoundBoundary {
   id        String   @id @default(uuid())
   points    Json

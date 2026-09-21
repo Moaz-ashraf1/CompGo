@@ -14,6 +14,7 @@ import {
   registerDeviceTokenSchema,
   removeDeviceTokenSchema,
 } from "../device-token/device-token.validation.js";
+import * as notificationController from "../notification/notification.controller.js";
 const router = Router();
 
 router.use("/auth", authRouter);
@@ -52,6 +53,24 @@ router.delete(
   authorize("CLIENT"),
   validate(removeDeviceTokenSchema),
   deviceTokenController.removeDeviceToken,
+);
+router.get(
+  "/notifications",
+  authenticate,
+  authorize("CLIENT"),
+  notificationController.getNotifications,
+);
+router.patch(
+  "/notifications/read-all",
+  authenticate,
+  authorize("CLIENT"),
+  notificationController.markAllRead,
+);
+router.patch(
+  "/notifications/:id/read",
+  authenticate,
+  authorize("CLIENT"),
+  notificationController.markRead,
 );
 router.get(
   "/",

@@ -8,7 +8,7 @@ import {
   emitToCaptain,
   emitToCaptainsBroadcast,
 } from "../../realtime/socket.js";
-import { pushToAccount, pushToAllCaptains } from "../../realtime/push.js";
+import { notifyAccount, notifyAllCaptains } from "../notification/notification.service.js";
 import { isPointInsidePolygon, haversineDistanceKm } from "../../utils/geo.js";
 import { TripStatus, TripType } from "../../generated/prisma/client.js";
 import type {
@@ -170,7 +170,7 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
 
   const [withClient] = await attachClientInfo([created], { withPhone: false });
   emitToCaptainsBroadcast("trip:new", withClient);
-  void pushToAllCaptains({
+  void notifyAllCaptains({
     title: "طلب جديد",
     body: `طلب ${TYPE_LABELS[data.type as TripType]} جديد بالقرب منك`,
     data: { tripId: created.id, type: "trip:new" },
@@ -247,7 +247,7 @@ export const cancelClientTrip = async (
     // not the captain-attached shape this function returns to the client.
     const forCaptain = await attachClientInfoOne(cancelled, { withPhone: true });
     emitToCaptain(trip.captainId, "trip:updated", forCaptain);
-    void pushToAccount(trip.captainId, {
+    void notifyAccount(trip.captainId, "CAPTAIN", {
       title: "تم إلغاء الرحلة",
       body: "العميل ألغى الرحلة",
       data: { tripId, type: "trip:updated" },
@@ -276,7 +276,7 @@ export const acceptTrip = async (captainId: string, tripId: string) => {
   // The client sees *captain* info attached (who picked them up), not the
   // client-attached shape this function returns to the accepting captain.
   emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(updated!));
-  void pushToAccount(trip.clientId, {
+  void notifyAccount(trip.clientId, "CLIENT", {
     title: "تم قبول رحلتك",
     body: "الكابتن في الطريق إليك",
     data: { tripId, type: "trip:updated" },
@@ -306,7 +306,7 @@ export const startTrip = async (captainId: string, tripId: string) => {
     startedAt: new Date(),
   });
   emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(started));
-  void pushToAccount(trip.clientId, {
+  void notifyAccount(trip.clientId, "CLIENT", {
     title: "بدأت رحلتك",
     body: "وصلة سعيدة!",
     data: { tripId, type: "trip:updated" },
@@ -338,7 +338,7 @@ export const completeTrip = async (captainId: string, tripId: string) => {
   ]);
 
   emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(updatedTrip));
-  void pushToAccount(trip.clientId, {
+  void notifyAccount(trip.clientId, "CLIENT", {
     title: "اكتملت رحلتك",
     body: "وصلت بأمان! قيّم رحلتك دلوقتي",
     data: { tripId, type: "trip:updated" },
@@ -365,7 +365,7 @@ export const cancelCaptainTrip = async (
     cancelReason: data.reason ?? null,
   });
   emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(cancelled));
-  void pushToAccount(trip.clientId, {
+  void notifyAccount(trip.clientId, "CLIENT", {
     title: "تم إلغاء رحلتك",
     body: "الكابتن ألغى الرحلة، حاول تاني",
     data: { tripId, type: "trip:updated" },
