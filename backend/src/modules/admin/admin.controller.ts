@@ -41,3 +41,24 @@ export const resetClientPassword = asyncHandler(
     });
   },
 );
+
+export const getCaptainDetail = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const detail = await adminService.getCaptainDetail(id as string);
+
+    res.status(StatusCodes.OK).json({ status: "success", data: detail });
+  },
+);
+
+export const adjustCaptainBalance = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const captain = await adminService.adjustCaptainBalance(
+      id as string,
+      req.body,
+    );
+
+    res.status(StatusCodes.OK).json({ status: "success", data: { captain } });
+  },
+);

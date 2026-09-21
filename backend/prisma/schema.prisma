@@ -97,6 +97,21 @@ model Captain {
   updatedAt       DateTime      @updatedAt
 }
 
+/// A manual balance adjustment an admin makes on a captain's `amountDue`
+/// (see admin.service.ts -> adjustCaptainBalance) - positive charges the
+/// captain more (e.g. correcting a missed commission), negative pays them
+/// out/reduces what they owe. Kept as its own audit trail separate from
+/// the per-trip commission entries in the captain's wallet history.
+model WalletTransaction {
+  id        String   @id @default(uuid())
+  captainId String
+  amount    Decimal  @db.Decimal(10, 2)
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@index([captainId, createdAt])
+}
+
 model RefreshToken {
   id        String      @id @default(uuid())
   accountId String

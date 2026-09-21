@@ -464,12 +464,14 @@ export const getTripById = async (tripId: string) => {
 };
 
 export const getCaptainWallet = async (captainId: string) => {
-  const [captain, stats, recentTrips, pricing] = await Promise.all([
-    captainRepo.findCaptainById(captainId),
-    tripRepo.getCaptainTripStats(captainId),
-    tripRepo.findRecentCompletedTrips(captainId),
-    pricingRepo.findPricingConfig(),
-  ]);
+  const [captain, stats, recentTrips, pricing, walletTransactions] =
+    await Promise.all([
+      captainRepo.findCaptainById(captainId),
+      tripRepo.getCaptainTripStats(captainId),
+      tripRepo.findRecentCompletedTrips(captainId),
+      pricingRepo.findPricingConfig(),
+      captainRepo.findWalletTransactionsByCaptain(captainId),
+    ]);
 
   if (!captain) throw new CaptainNotFoundError();
 
@@ -477,23 +479,45 @@ export const getCaptainWallet = async (captainId: string) => {
     ? Number(pricing.commissionPercentage)
     : 0;
 
-  const recentTransactions = recentTrips.flatMap((trip) => {
+  const tripTransactions = recentTrips.flatMap((trip) => {
     const commission = Number(trip.price) * (commissionPercentage / 100);
     return [
       {
         type: "TRIP_FARE" as const,
-        tripId: trip.id,
+        tripId: trip.id as string | null,
+        reason: null as string | null,
         amount: Number(trip.price),
         occurredAt: trip.completedAt,
       },
       {
         type: "PLATFORM_COMMISSION" as const,
-        tripId: trip.id,
+        tripId: trip.id as string | null,
+        reason: null as string | null,
         amount: -commission,
         occurredAt: trip.completedAt,
       },
     ];
   });
+
+  // Manual admin adjustments (see WalletTransaction in schema.prisma) -
+  // folded into the same feed so a captain sees the full picture of why
+  // their balance changed, not just per-trip commission.
+  const adjustmentTransactions = walletTransactions.map((w) => ({
+    type: "ADMIN_ADJUSTMENT" as const,
+    tripId: null as string | null,
+    reason: w.reason as string | null,
+    amount: Number(w.amount),
+    occurredAt: w.createdAt as Date | null,
+  }));
+
+  const recentTransactions = [
+    ...tripTransactions,
+    ...adjustmentTransactions,
+  ].sort(
+    (a, b) =>
+      new Date(b.occurredAt ?? 0).getTime() -
+      new Date(a.occurredAt ?? 0).getTime(),
+  );
 
   return {
     amountDue: Number(captain.amountDue),

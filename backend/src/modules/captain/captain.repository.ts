@@ -191,3 +191,26 @@ export const incrementAmountDue = async (id: string, amount: number) => {
     select: captainSafeSelect,
   });
 };
+
+/// See WalletTransaction in schema.prisma - a manual admin balance
+/// adjustment, kept as its own audit trail alongside the per-trip
+/// commission entries already folded into the wallet (see trip.service.ts
+/// -> getCaptainWallet, and admin.service.ts -> adjustCaptainBalance).
+export const createWalletTransaction = async (
+  captainId: string,
+  amount: number,
+  reason: string,
+) => {
+  return prisma.walletTransaction.create({ data: { captainId, amount, reason } });
+};
+
+export const findWalletTransactionsByCaptain = async (
+  captainId: string,
+  limit = 20,
+) => {
+  return prisma.walletTransaction.findMany({
+    where: { captainId },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+};
