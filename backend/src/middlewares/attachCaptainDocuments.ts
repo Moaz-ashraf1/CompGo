@@ -10,17 +10,20 @@ export const attachCaptainDocuments = (
     | { [field: string]: Express.Multer.File[] }
     | undefined;
 
+  const profilePhotoFile = files?.profilePhoto?.[0];
   const nationalIdFile = files?.nationalIdImage?.[0];
   const licenseFile = files?.licenseImage?.[0];
 
-  if (!nationalIdFile || !licenseFile) {
+  if (!profilePhotoFile || !nationalIdFile || !licenseFile) {
     res.status(StatusCodes.BAD_REQUEST).json({
       status: "fail",
-      message: "nationalIdImage and licenseImage files are required",
+      message:
+        "profilePhoto, nationalIdImage and licenseImage files are required",
     });
     return;
   }
 
+  req.body.profilePhoto = `/uploads/captains/${profilePhotoFile.filename}`;
   req.body.nationalIdImage = `/uploads/captains/${nationalIdFile.filename}`;
   req.body.licenseImage = `/uploads/captains/${licenseFile.filename}`;
 

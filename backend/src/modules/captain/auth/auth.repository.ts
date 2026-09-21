@@ -9,6 +9,7 @@ export const createCaptain = async (data: {
   phone: string;
   gender: "MALE" | "FEMALE";
   passwordHash: string;
+  profilePhoto: string;
   nationalIdImage: string;
   licenseImage: string;
   vehicleNumber: string;

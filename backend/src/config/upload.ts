@@ -32,6 +32,7 @@ export const captainDocumentsUpload = multer({
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, 
 }).fields([
+  { name: "profilePhoto", maxCount: 1 },
   { name: "nationalIdImage", maxCount: 1 },
   { name: "licenseImage", maxCount: 1 },
 ]);

@@ -81,6 +81,7 @@ model Captain {
   phone           String        @unique
   gender          Gender
   passwordHash    String
+  profilePhoto    String?
   nationalIdImage String
   licenseImage    String
   vehicleNumber   String        @unique

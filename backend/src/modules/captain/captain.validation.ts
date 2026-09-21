@@ -13,6 +13,8 @@ export const registerCaptainSchema = z.object({
 
   gender: z.enum(["MALE", "FEMALE"]),
 
+  profilePhoto: z.string().min(1),
+
   nationalIdImage: z.string().min(1),
 
   licenseImage: z.string().min(1),
