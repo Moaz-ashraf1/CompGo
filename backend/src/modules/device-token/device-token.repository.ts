@@ -36,6 +36,14 @@ export const findAllCaptainTokens = async () => {
   });
 };
 
+export const findCaptainTokensByIds = async (captainIds: string[]) => {
+  if (captainIds.length === 0) return [];
+  return prisma.deviceToken.findMany({
+    where: { role: "CAPTAIN", accountId: { in: captainIds } },
+    select: { token: true },
+  });
+};
+
 /// Called after a push send reports a token as unregistered/invalid (app
 /// uninstalled, token rotated) - keeps the table from accumulating dead
 /// tokens forever.

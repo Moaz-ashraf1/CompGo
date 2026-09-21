@@ -8,7 +8,11 @@ import {
   emitToCaptain,
   emitToCaptainsBroadcast,
 } from "../../realtime/socket.js";
-import { notifyAccount, notifyAllCaptains } from "../notification/notification.service.js";
+import {
+  notifyAccount,
+  notifyAllCaptains,
+  notifyFemaleCaptains,
+} from "../notification/notification.service.js";
 import { isPointInsidePolygon, haversineDistanceKm } from "../../utils/geo.js";
 import { TripStatus, TripType } from "../../generated/prisma/client.js";
 import type {
@@ -26,6 +30,8 @@ import {
   OrderOutsideCompoundError,
   NoCompoundBoundaryError,
   NoPricingConfigError,
+  FemaleCaptainOnlyRestrictedError,
+  TripRestrictedToFemaleCaptainsError,
 } from "../../exceptions/trip.exceptions.js";
 
 // Trip rows only ever carry raw `clientId`/`captainId` strings - these
@@ -126,6 +132,13 @@ const TYPE_LABELS: Record<TripType, string> = {
   AIRPORT: "مطار",
 };
 export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
+  if (data.femaleCaptainOnly) {
+    const client = await clientRepo.findClientById(clientId);
+    if (client?.gender !== "FEMALE") {
+      throw new FemaleCaptainOnlyRestrictedError();
+    }
+  }
+
   const isInsideCompound = await resolveIsInsideCompound(
     data.pickupLat,
     data.pickupLng,
@@ -166,15 +179,27 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
     passengers: data.passengers ?? null,
     luggageCount: data.luggageCount ?? null,
     flightNumber: data.flightNumber ?? null,
+    femaleCaptainOnly: data.femaleCaptainOnly ?? false,
   });
 
   const [withClient] = await attachClientInfo([created], { withPhone: false });
-  emitToCaptainsBroadcast("trip:new", withClient);
-  void notifyAllCaptains({
+  const notifyPayload = {
     title: "طلب جديد",
     body: `طلب ${TYPE_LABELS[data.type as TripType]} جديد بالقرب منك`,
     data: { tripId: created.id, type: "trip:new" },
-  });
+  };
+  if (created.femaleCaptainOnly) {
+    // Only female captains can ever see/accept this trip - broadcasting
+    // it (or notifying) to everyone would just be noise/confusion for
+    // captains who structurally can't take it (see getAvailableTrips
+    // and acceptTrip below).
+    const femaleCaptains = await captainRepo.findFemaleCaptainIds();
+    femaleCaptains.forEach((c) => emitToCaptain(c.id, "trip:new", withClient));
+    void notifyFemaleCaptains(notifyPayload);
+  } else {
+    emitToCaptainsBroadcast("trip:new", withClient);
+    void notifyAllCaptains(notifyPayload);
+  }
 
   return created;
 };
@@ -257,14 +282,29 @@ export const cancelClientTrip = async (
   return attachCaptainInfoOne(cancelled);
 };
 
-export const getAvailableTrips = async () => {
-  const trips = await tripRepo.findAvailableTrips();
-  return attachClientInfo(trips, { withPhone: false });
+export const getAvailableTrips = async (captainId: string) => {
+  const [trips, captain] = await Promise.all([
+    tripRepo.findAvailableTrips(),
+    captainRepo.findCaptainById(captainId),
+  ]);
+  // A `femaleCaptainOnly` trip only shows up for FEMALE captains - see
+  // requestTrip's matching restriction on the client side.
+  const visible = trips.filter(
+    (t) => !t.femaleCaptainOnly || captain?.gender === "FEMALE",
+  );
+  return attachClientInfo(visible, { withPhone: false });
 };
 
 export const acceptTrip = async (captainId: string, tripId: string) => {
   const trip = await tripRepo.findTripById(tripId);
   if (!trip) throw new TripNotFoundError();
+
+  if (trip.femaleCaptainOnly) {
+    const captain = await captainRepo.findCaptainById(captainId);
+    if (captain?.gender !== "FEMALE") {
+      throw new TripRestrictedToFemaleCaptainsError();
+    }
+  }
 
   const accepted = await tripRepo.acceptTrip(tripId, captainId);
   if (!accepted) throw new TripAlreadyTakenError();

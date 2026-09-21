@@ -41,6 +41,16 @@ export const findCaptainByPhone = async (phone: string) => {
   });
 };
 
+/// Used to fan a `trip:new`/notification out to only the captains eligible
+/// to accept a `femaleCaptainOnly` trip (see trip.service.ts ->
+/// requestTrip and notification.service.ts -> notifyFemaleCaptains).
+export const findFemaleCaptainIds = async () => {
+  return prisma.captain.findMany({
+    where: { gender: "FEMALE" },
+    select: { id: true },
+  });
+};
+
 export const findAllCaptains = async () => {
   return prisma.captain.findMany({
     select: {

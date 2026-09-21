@@ -59,3 +59,21 @@ export class NoPricingConfigError extends AppException {
     super("Pricing is not configured yet", StatusCodes.BAD_REQUEST);
   }
 }
+
+export class FemaleCaptainOnlyRestrictedError extends AppException {
+  constructor() {
+    super(
+      "Only female clients can request a female-only captain",
+      StatusCodes.FORBIDDEN,
+    );
+  }
+}
+
+export class TripRestrictedToFemaleCaptainsError extends AppException {
+  constructor() {
+    super(
+      "This trip is only available to female captains",
+      StatusCodes.FORBIDDEN,
+    );
+  }
+}

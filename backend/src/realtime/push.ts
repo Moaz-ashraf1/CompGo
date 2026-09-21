@@ -62,3 +62,14 @@ export const pushToAllCaptains = async (payload: PushPayload) => {
     payload,
   );
 };
+
+export const pushToCaptains = async (
+  captainIds: string[],
+  payload: PushPayload,
+) => {
+  const tokens = await deviceTokenRepo.findCaptainTokensByIds(captainIds);
+  await sendToTokens(
+    tokens.map((t) => t.token),
+    payload,
+  );
+};

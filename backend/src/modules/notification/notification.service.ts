@@ -5,7 +5,11 @@ import {
   emitToCaptain,
   emitToCaptainsBroadcast,
 } from "../../realtime/socket.js";
-import { pushToAccount, pushToAllCaptains } from "../../realtime/push.js";
+import {
+  pushToAccount,
+  pushToAllCaptains,
+  pushToCaptains,
+} from "../../realtime/push.js";
 import type { AccountRole } from "../../generated/prisma/client.js";
 
 interface NotifyPayload {
@@ -55,6 +59,28 @@ export const notifyAllCaptains = async (payload: NotifyPayload) => {
 
   emitToCaptainsBroadcast("notification:new", payload);
   void pushToAllCaptains(payload);
+};
+
+/// Same as `notifyAllCaptains`, but only for FEMALE captains - used for a
+/// `femaleCaptainOnly` trip so male captains never see a notification for
+/// something they structurally can't accept (see trip.service.ts ->
+/// requestTrip).
+export const notifyFemaleCaptains = async (payload: NotifyPayload) => {
+  const captains = await captainRepo.findFemaleCaptainIds();
+  const ids = captains.map((c) => c.id);
+  if (ids.length === 0) return;
+
+  await notificationRepo.createNotificationsForAccounts(ids, {
+    role: "CAPTAIN",
+    title: payload.title,
+    body: payload.body,
+    data: payload.data,
+  });
+
+  for (const id of ids) {
+    emitToCaptain(id, "notification:new", payload);
+  }
+  void pushToCaptains(ids, payload);
 };
 
 export const getNotifications = async (accountId: string) => {

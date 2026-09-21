@@ -17,6 +17,10 @@ export const createTripSchema = z
     passengers: z.number().int().min(1).max(20).optional(),
     luggageCount: z.number().int().min(0).max(20).optional(),
     flightNumber: z.string().max(20).optional(),
+    // Only a FEMALE client is allowed to set this - enforced server-side
+    // in trip.service.ts (requestTrip), never trusted from the client
+    // alone.
+    femaleCaptainOnly: z.boolean().optional(),
   })
   .refine(
     (data) =>

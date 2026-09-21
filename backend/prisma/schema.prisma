@@ -195,6 +195,10 @@ model PricingConfig {
    price            Decimal    @db.Decimal(10, 2)
    cancelReason     String?
    paymentMethod    PaymentMethod @default(CASH)
+   // Only a FEMALE client may set this (enforced in trip.service.ts ->
+   // requestTrip) - restricts which captains can see/accept the trip to
+   // FEMALE captains only (see getAvailableTrips/acceptTrip).
+   femaleCaptainOnly Boolean @default(false)
    // Advance-booking details, currently only meaningful for AIRPORT trips.
    // A trip is still created and matched immediately on request either
    // way - there's no scheduler yet that holds a trip until scheduledAt.

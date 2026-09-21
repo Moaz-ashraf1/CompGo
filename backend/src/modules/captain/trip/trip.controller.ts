@@ -6,7 +6,7 @@ import type { TripType, TripStatus } from "../../../generated/prisma/client.js";
 
 export const getAvailableTrips = asyncHandler(
   async (req: Request, res: Response) => {
-    const trips = await tripService.getAvailableTrips();
+    const trips = await tripService.getAvailableTrips(req.user!.id);
     res.status(StatusCodes.OK).json({ status: "success", data: { trips } });
   },
 );
