@@ -89,6 +89,9 @@ model Captain {
   amountDue       Decimal       @default(0) @db.Decimal(10, 2)
   status          CaptainStatus @default(ACTIVE)
   isAvailable     Boolean       @default(false)
+  lastLat         Float?
+  lastLng         Float?
+  lastLocationAt  DateTime?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 }

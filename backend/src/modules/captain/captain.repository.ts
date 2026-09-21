@@ -70,6 +70,9 @@ export const captainPublicSelect = {
   vehicleType: true,
   vehicleModel: true,
   vehicleNumber: true,
+  lastLat: true,
+  lastLng: true,
+  lastLocationAt: true,
 } as const;
 
 /// Batch lookup for attaching public captain info to trip responses
@@ -136,6 +139,21 @@ export const updateCaptainPassword = async (
   passwordHash: string,
 ) => {
   return prisma.captain.update({ where: { id }, data: { passwordHash } });
+};
+
+/// Called every few seconds by an on-trip captain's foreground location
+/// timer - deliberately cheap (no select) since nothing reads the return
+/// value.
+export const updateCaptainLocation = async (
+  id: string,
+  lat: number,
+  lng: number,
+) => {
+  await prisma.captain.update({
+    where: { id },
+    data: { lastLat: lat, lastLng: lng, lastLocationAt: new Date() },
+    select: { id: true },
+  });
 };
 
 export const updateAvailability = async (id: string, isAvailable: boolean) => {

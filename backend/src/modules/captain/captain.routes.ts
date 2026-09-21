@@ -4,6 +4,7 @@ import {
   updateCaptainProfileSchema,
   updateAvailabilitySchema,
   changeCaptainPasswordSchema,
+  updateCaptainLocationSchema,
 } from "./captain.validation.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import authRouter from "./auth/auth.route.js";
@@ -43,6 +44,13 @@ router.patch(
   authorize("CAPTAIN"),
   validate(changeCaptainPasswordSchema),
   captainController.changePassword,
+);
+router.patch(
+  "/me/location",
+  authenticate,
+  authorize("CAPTAIN"),
+  validate(updateCaptainLocationSchema),
+  captainController.updateLocation,
 );
 router.get(
   "/pricing",

@@ -64,3 +64,12 @@ export const changeCaptainPasswordSchema = z.object({
 export type ChangeCaptainPasswordDTO = z.infer<
   typeof changeCaptainPasswordSchema
 >;
+
+export const updateCaptainLocationSchema = z.object({
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+});
+
+export type UpdateCaptainLocationDTO = z.infer<
+  typeof updateCaptainLocationSchema
+>;

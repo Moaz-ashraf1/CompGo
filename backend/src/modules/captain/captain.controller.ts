@@ -106,3 +106,10 @@ export const changePassword = asyncHandler(
     });
   },
 );
+
+export const updateLocation = asyncHandler(
+  async (req: Request, res: Response) => {
+    await captainService.updateLocation(req.user!.id, req.body);
+    res.status(StatusCodes.OK).json({ status: "success" });
+  },
+);

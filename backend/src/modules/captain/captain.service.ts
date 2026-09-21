@@ -4,6 +4,7 @@ import * as captainExceptions from "../../exceptions/captain.exceptions.js";
 import type {
   UpdateCaptainProfileDTO,
   ChangeCaptainPasswordDTO,
+  UpdateCaptainLocationDTO,
 } from "./captain.validation.js";
 import { CaptainStatus } from "../../generated/prisma/client.js";
 import {
@@ -131,4 +132,11 @@ export const updateAvailability = async (
   isAvailable: boolean,
 ) => {
   return captainRepo.updateAvailability(captainId, isAvailable);
+};
+
+export const updateLocation = async (
+  captainId: string,
+  data: UpdateCaptainLocationDTO,
+) => {
+  await captainRepo.updateCaptainLocation(captainId, data.lat, data.lng);
 };
