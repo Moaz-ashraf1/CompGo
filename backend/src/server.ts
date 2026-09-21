@@ -3,6 +3,7 @@ import { logger } from "./config/logger.js";
 import "dotenv/config";
 import { prisma } from "./config/prisma.js";
 import { initSocket } from "./realtime/socket.js";
+import { startScheduledTripDispatcher } from "./jobs/dispatchScheduledTrips.js";
 
 async function startServer() {
   try {
@@ -17,6 +18,7 @@ async function startServer() {
       });
     });
     initSocket(httpServer);
+    startScheduledTripDispatcher();
   } catch (error) {
     logger.error("Failed to connect to DB", {
       error: (error as Error).message,

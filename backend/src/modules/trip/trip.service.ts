@@ -131,6 +131,43 @@ const TYPE_LABELS: Record<TripType, string> = {
   ORDER: "طلب",
   AIRPORT: "مطار",
 };
+
+/// How far ahead of a scheduled trip's `scheduledAt` captains start seeing
+/// it (getAvailableTrips) and get pushed a `trip:new` for it. A trip
+/// scheduled further out than this just sits as REQUESTED - visible to the
+/// client in their own trip list/cancellable as normal, invisible to
+/// captains - until the dispatcher job (src/jobs/dispatchScheduledTrips.ts)
+/// crosses this window.
+export const LEAD_WINDOW_MS = 60 * 60 * 1000;
+
+/// The single place a trip actually becomes visible/pushed to captains -
+/// used both for an immediate (unscheduled, or already-due) trip at
+/// creation time, and later by the scheduled-trip dispatcher job.
+const dispatchTripToCaptains = async (trip: {
+  id: string;
+  type: TripType;
+  clientId: string;
+  femaleCaptainOnly: boolean;
+}) => {
+  const [withClient] = await attachClientInfo([trip], { withPhone: false });
+  const notifyPayload = {
+    title: "طلب جديد",
+    body: `طلب ${TYPE_LABELS[trip.type]} جديد بالقرب منك`,
+    data: { tripId: trip.id, type: "trip:new" },
+  };
+  if (trip.femaleCaptainOnly) {
+    // Only female captains can ever see/accept this trip - broadcasting
+    // it (or notifying) to everyone would just be noise/confusion for
+    // captains who structurally can't take it (see getAvailableTrips
+    // and acceptTrip below).
+    const femaleCaptains = await captainRepo.findFemaleCaptainIds();
+    femaleCaptains.forEach((c) => emitToCaptain(c.id, "trip:new", withClient));
+    void notifyFemaleCaptains(notifyPayload);
+  } else {
+    emitToCaptainsBroadcast("trip:new", withClient);
+    void notifyAllCaptains(notifyPayload);
+  }
+};
 export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
   if (data.femaleCaptainOnly) {
     const client = await clientRepo.findClientById(clientId);
@@ -182,24 +219,18 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
     femaleCaptainOnly: data.femaleCaptainOnly ?? false,
   });
 
-  const [withClient] = await attachClientInfo([created], { withPhone: false });
-  const notifyPayload = {
-    title: "طلب جديد",
-    body: `طلب ${TYPE_LABELS[data.type as TripType]} جديد بالقرب منك`,
-    data: { tripId: created.id, type: "trip:new" },
-  };
-  if (created.femaleCaptainOnly) {
-    // Only female captains can ever see/accept this trip - broadcasting
-    // it (or notifying) to everyone would just be noise/confusion for
-    // captains who structurally can't take it (see getAvailableTrips
-    // and acceptTrip below).
-    const femaleCaptains = await captainRepo.findFemaleCaptainIds();
-    femaleCaptains.forEach((c) => emitToCaptain(c.id, "trip:new", withClient));
-    void notifyFemaleCaptains(notifyPayload);
-  } else {
-    emitToCaptainsBroadcast("trip:new", withClient);
-    void notifyAllCaptains(notifyPayload);
+  const isDueNow =
+    !created.scheduledAt ||
+    created.scheduledAt.getTime() <= Date.now() + LEAD_WINDOW_MS;
+
+  if (isDueNow) {
+    await tripRepo.markTripDispatched(created.id);
+    await dispatchTripToCaptains(created);
   }
+  // Otherwise this is a scheduled trip further out than the lead window -
+  // it stays REQUESTED and invisible to captains until
+  // src/jobs/dispatchScheduledTrips.ts crosses that window and dispatches
+  // it the same way.
 
   return created;
 };
@@ -284,7 +315,7 @@ export const cancelClientTrip = async (
 
 export const getAvailableTrips = async (captainId: string) => {
   const [trips, captain] = await Promise.all([
-    tripRepo.findAvailableTrips(),
+    tripRepo.findAvailableTrips(new Date(Date.now() + LEAD_WINDOW_MS)),
     captainRepo.findCaptainById(captainId),
   ]);
   // A `femaleCaptainOnly` trip only shows up for FEMALE captains - see
@@ -476,6 +507,20 @@ export const getCaptainWallet = async (captainId: string) => {
 
 export const getCaptainRatingStats = async (captainId: string) => {
   return tripRepo.getCaptainRatingStats(captainId);
+};
+
+/// Polled by src/jobs/dispatchScheduledTrips.ts - finds every scheduled
+/// trip that just entered its lead window and hasn't been shown to
+/// captains yet, and dispatches each one the same way an immediate trip
+/// is dispatched at creation.
+export const dispatchDueScheduledTrips = async () => {
+  const due = await tripRepo.findDueScheduledTrips(
+    new Date(Date.now() + LEAD_WINDOW_MS),
+  );
+  for (const trip of due) {
+    await tripRepo.markTripDispatched(trip.id);
+    await dispatchTripToCaptains(trip);
+  }
 };
 
 export const notifyCaptainLocationUpdate = async (

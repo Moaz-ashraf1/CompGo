@@ -26,10 +26,37 @@ export const findTripsByCaptain = async (
   });
 };
 
-export const findAvailableTrips = async () => {
+/// `visibleBefore` excludes a not-yet-due scheduled trip (see
+/// trip.service.ts's LEAD_WINDOW_MS) - a trip with no `scheduledAt` is
+/// always visible.
+export const findAvailableTrips = async (visibleBefore: Date) => {
   return prisma.trip.findMany({
-    where: { status: TripStatus.REQUESTED },
+    where: {
+      status: TripStatus.REQUESTED,
+      OR: [{ scheduledAt: null }, { scheduledAt: { lte: visibleBefore } }],
+    },
     orderBy: { requestedAt: "asc" },
+  });
+};
+
+/// Scheduled trips that just entered their lead window and haven't been
+/// shown to captains yet - polled by the dispatcher job (see
+/// src/jobs/dispatchScheduledTrips.ts).
+export const findDueScheduledTrips = async (dueBefore: Date) => {
+  return prisma.trip.findMany({
+    where: {
+      status: TripStatus.REQUESTED,
+      captainId: null,
+      dispatchedAt: null,
+      scheduledAt: { not: null, lte: dueBefore },
+    },
+  });
+};
+
+export const markTripDispatched = async (id: string) => {
+  await prisma.trip.update({
+    where: { id },
+    data: { dispatchedAt: new Date() },
   });
 };
 

@@ -203,6 +203,11 @@ model PricingConfig {
    // A trip is still created and matched immediately on request either
    // way - there's no scheduler yet that holds a trip until scheduledAt.
    scheduledAt      DateTime?
+   // Set once the trip is actually shown to captains (see trip.service.ts
+   // -> dispatchTripToCaptains) - immediately for a normal/unscheduled
+   // trip, or later by the scheduled-trip dispatcher job once `scheduledAt`
+   // is within its lead window. Null means captains have never seen it yet.
+   dispatchedAt     DateTime?
    passengers       Int?
    luggageCount     Int?
    flightNumber     String?
