@@ -143,4 +143,5 @@ export const updateLocation = async (
   data: UpdateCaptainLocationDTO,
 ) => {
   await captainRepo.updateCaptainLocation(captainId, data.lat, data.lng);
+  await tripService.notifyCaptainLocationUpdate(captainId, data.lat, data.lng);
 };

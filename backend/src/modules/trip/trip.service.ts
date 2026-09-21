@@ -3,6 +3,11 @@ import * as boundaryRepo from "../compound-boundary/compound-boundary.repository
 import * as pricingRepo from "../pricing/pricing.repository.js";
 import * as captainRepo from "../captain/captain.repository.js";
 import * as clientRepo from "../client/client.repo.js";
+import {
+  emitToClient,
+  emitToCaptain,
+  emitToCaptainsBroadcast,
+} from "../../realtime/socket.js";
 import { isPointInsidePolygon, haversineDistanceKm } from "../../utils/geo.js";
 import { TripStatus, TripType } from "../../generated/prisma/client.js";
 import type {
@@ -135,7 +140,7 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
     distanceKm,
   });
 
-  return tripRepo.createTrip({
+  const created = await tripRepo.createTrip({
     type: data.type,
     clientId,
     pickupLat: data.pickupLat,
@@ -155,6 +160,11 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
     luggageCount: data.luggageCount ?? null,
     flightNumber: data.flightNumber ?? null,
   });
+
+  const [withClient] = await attachClientInfo([created], { withPhone: false });
+  emitToCaptainsBroadcast("trip:new", withClient);
+
+  return created;
 };
 
 export const getClientTrips = async (clientId: string) => {
@@ -213,6 +223,20 @@ export const cancelClientTrip = async (
     cancelledAt: new Date(),
     cancelReason: data.reason ?? null,
   });
+
+  if (trip.status === TripStatus.REQUESTED) {
+    // Wasn't assigned yet - every captain currently browsing it needs it
+    // removed from their available-trips list.
+    emitToCaptainsBroadcast("trip:taken", { tripId });
+  } else if (trip.captainId) {
+    // Was already accepted - the assigned captain needs to know the
+    // client just pulled the trip out from under them. They see this
+    // trip with *client* info attached (their own normal view of it),
+    // not the captain-attached shape this function returns to the client.
+    const forCaptain = await attachClientInfoOne(cancelled, { withPhone: true });
+    emitToCaptain(trip.captainId, "trip:updated", forCaptain);
+  }
+
   return attachCaptainInfoOne(cancelled);
 };
 
@@ -229,7 +253,14 @@ export const acceptTrip = async (captainId: string, tripId: string) => {
   if (!accepted) throw new TripAlreadyTakenError();
 
   const updated = await tripRepo.findTripById(tripId);
-  return attachClientInfoOne(updated!, { withPhone: true });
+  const forCaptain = await attachClientInfoOne(updated!, { withPhone: true });
+
+  emitToCaptainsBroadcast("trip:taken", { tripId });
+  // The client sees *captain* info attached (who picked them up), not the
+  // client-attached shape this function returns to the accepting captain.
+  emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(updated!));
+
+  return forCaptain;
 };
 
 const getCaptainTripOrThrow = async (captainId: string, tripId: string) => {
@@ -252,6 +283,7 @@ export const startTrip = async (captainId: string, tripId: string) => {
     status: TripStatus.IN_PROGRESS,
     startedAt: new Date(),
   });
+  emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(started));
   return attachClientInfoOne(started, { withPhone: true });
 };
 
@@ -278,6 +310,7 @@ export const completeTrip = async (captainId: string, tripId: string) => {
     captainRepo.incrementAmountDue(captainId, commission),
   ]);
 
+  emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(updatedTrip));
   return attachClientInfoOne(updatedTrip, { withPhone: true });
 };
 
@@ -299,6 +332,7 @@ export const cancelCaptainTrip = async (
     cancelledAt: new Date(),
     cancelReason: data.reason ?? null,
   });
+  emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(cancelled));
   return attachClientInfoOne(cancelled, { withPhone: true });
 };
 
@@ -365,4 +399,19 @@ export const getCaptainWallet = async (captainId: string) => {
 
 export const getCaptainRatingStats = async (captainId: string) => {
   return tripRepo.getCaptainRatingStats(captainId);
+};
+
+export const notifyCaptainLocationUpdate = async (
+  captainId: string,
+  lat: number,
+  lng: number,
+) => {
+  const trip = await tripRepo.findActiveTripForCaptain(captainId);
+  if (!trip) return;
+  emitToClient(trip.clientId, "captain:location", {
+    tripId: trip.id,
+    lat,
+    lng,
+    updatedAt: new Date().toISOString(),
+  });
 };

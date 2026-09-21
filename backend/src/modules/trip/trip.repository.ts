@@ -105,6 +105,17 @@ export const findTripById = async (tripId: string) => {
   return prisma.trip.findUnique({ where: { id: tripId } });
 };
 
+/// Used to route a captain's live location update to the right client -
+/// a captain only ever has one accepted/in-progress trip at a time.
+export const findActiveTripForCaptain = async (captainId: string) => {
+  return prisma.trip.findFirst({
+    where: {
+      captainId,
+      status: { in: [TripStatus.ACCEPTED, TripStatus.IN_PROGRESS] },
+    },
+  });
+};
+
 export const getCaptainRatingStats = async (captainId: string) => {
   const agg = await prisma.trip.aggregate({
     where: { captainId, rating: { not: null } },
