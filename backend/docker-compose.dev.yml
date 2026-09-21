@@ -39,6 +39,7 @@ services:
       NODE_ENV: development
       DATABASE_URL: postgresql://compgo_dev_user:${DEV_DB_PASSWORD}@postgres-dev:5432/compgo_dev
       ACCESS_TOKEN_SECRET: ${DEV_ACCESS_TOKEN_SECRET}
+      FIREBASE_SERVICE_ACCOUNT: ${FIREBASE_SERVICE_ACCOUNT}
     # The production image's CMD skips migrations (whoever set it up must
     # have run them by hand once) - for a dev box that gets rebuilt/reset
     # more often, apply pending migrations on every start instead.
