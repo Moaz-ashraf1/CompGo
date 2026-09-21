@@ -87,6 +87,11 @@ export const getWallet = asyncHandler(async (req: Request, res: Response) => {
   res.status(StatusCodes.OK).json({ status: "success", data: wallet });
 });
 
+export const getRating = asyncHandler(async (req: Request, res: Response) => {
+  const rating = await captainService.getRating(req.user!.id);
+  res.status(StatusCodes.OK).json({ status: "success", data: rating });
+});
+
 export const updateAvailability = asyncHandler(
   async (req: Request, res: Response) => {
     const captain = await captainService.updateAvailability(

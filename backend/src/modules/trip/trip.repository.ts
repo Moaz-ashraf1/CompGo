@@ -104,3 +104,25 @@ export const findRecentCompletedTrips = async (
 export const findTripById = async (tripId: string) => {
   return prisma.trip.findUnique({ where: { id: tripId } });
 };
+
+export const getCaptainRatingStats = async (captainId: string) => {
+  const agg = await prisma.trip.aggregate({
+    where: { captainId, rating: { not: null } },
+    _avg: { rating: true },
+    _count: { rating: true },
+  });
+  return { avgRating: agg._avg.rating, ratingsCount: agg._count.rating };
+};
+
+/// Batch version of `getCaptainRatingStats` for attaching a captain's
+/// rating alongside their public trip info (see trip.service.ts ->
+/// attachCaptainInfo) without one aggregate query per trip.
+export const getCaptainRatingStatsByIds = async (captainIds: string[]) => {
+  if (captainIds.length === 0) return [];
+  return prisma.trip.groupBy({
+    by: ["captainId"],
+    where: { captainId: { in: captainIds }, rating: { not: null } },
+    _avg: { rating: true },
+    _count: { rating: true },
+  });
+};

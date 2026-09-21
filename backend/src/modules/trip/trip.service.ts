@@ -51,8 +51,22 @@ const attachCaptainInfo = async <T extends { captainId: string | null }>(
         .filter((id): id is string => id !== null),
     ),
   ];
-  const captains = await captainRepo.findCaptainsPublicByIds(ids);
-  const byId = new Map(captains.map((c) => [c.id, c]));
+  const [captains, ratingStats] = await Promise.all([
+    captainRepo.findCaptainsPublicByIds(ids),
+    tripRepo.getCaptainRatingStatsByIds(ids),
+  ]);
+  const ratingById = new Map(
+    ratingStats.map((r) => [
+      r.captainId as string,
+      { avgRating: r._avg.rating, ratingsCount: r._count.rating },
+    ]),
+  );
+  const byId = new Map(
+    captains.map((c) => [
+      c.id,
+      { ...c, ...(ratingById.get(c.id) ?? { avgRating: null, ratingsCount: 0 }) },
+    ]),
+  );
   return trips.map((trip) => ({
     ...trip,
     captain: trip.captainId ? (byId.get(trip.captainId) ?? null) : null,
@@ -347,4 +361,8 @@ export const getCaptainWallet = async (captainId: string) => {
     monthlyEarnings: stats.monthlyEarnings,
     recentTransactions,
   };
+};
+
+export const getCaptainRatingStats = async (captainId: string) => {
+  return tripRepo.getCaptainRatingStats(captainId);
 };

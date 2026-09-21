@@ -31,6 +31,12 @@ router.get(
   authorize("CAPTAIN"),
   captainController.getWallet,
 );
+router.get(
+  "/me/rating",
+  authenticate,
+  authorize("CAPTAIN"),
+  captainController.getRating,
+);
 router.patch(
   "/availability",
   authenticate,

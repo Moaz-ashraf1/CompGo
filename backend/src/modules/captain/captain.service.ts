@@ -127,6 +127,10 @@ export const changePassword = async (
 export const getWallet = async (captainId: string) => {
   return tripService.getCaptainWallet(captainId);
 };
+
+export const getRating = async (captainId: string) => {
+  return tripService.getCaptainRatingStats(captainId);
+};
 export const updateAvailability = async (
   captainId: string,
   isAvailable: boolean,
