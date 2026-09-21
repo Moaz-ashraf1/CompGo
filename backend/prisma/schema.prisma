@@ -146,6 +146,20 @@ model Notification {
   @@index([accountId, createdAt])
 }
 
+/// In-trip chat between the client and the assigned captain - only exists
+/// once a trip actually has both parties matched (see message.service.ts),
+/// same privacy tier as when phone numbers get exposed elsewhere.
+model Message {
+  id         String      @id @default(uuid())
+  tripId     String
+  senderId   String
+  senderRole AccountRole
+  body       String
+  createdAt  DateTime    @default(now())
+
+  @@index([tripId, createdAt])
+}
+
 model CompoundBoundary {
   id        String   @id @default(uuid())
   points    Json

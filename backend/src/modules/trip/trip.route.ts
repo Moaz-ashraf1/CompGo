@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as tripController from "./trip.controller.js";
+import * as messageController from "../message/message.controller.js";
 import { authenticate, authorize } from "./../../middlewares/auth.js";
 import { validate } from "./../../middlewares/validation.middleware.js";
 import {
@@ -7,6 +8,7 @@ import {
   cancelTripSchema,
   rateTripSchema,
 } from "./../trip/trip.validation.js";
+import { sendMessageSchema } from "../message/message.validation.js";
 
 const router = Router();
 
@@ -24,6 +26,12 @@ router.patch(
   "/:id/rate",
   validate(rateTripSchema),
   tripController.rateTrip,
+);
+router.get("/:id/messages", messageController.getMessages);
+router.post(
+  "/:id/messages",
+  validate(sendMessageSchema),
+  messageController.sendMessage,
 );
 
 export default router;
