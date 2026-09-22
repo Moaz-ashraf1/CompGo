@@ -40,3 +40,30 @@ export const changePassword = asyncHandler(
     });
   },
 );
+
+export const getClientDetail = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const detail = await clientService.getClientDetail(id as string);
+
+    res.status(StatusCodes.OK).json({ status: "success", data: detail });
+  },
+);
+
+export const blockClient = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const client = await clientService.blockClient(id as string);
+
+    res.status(StatusCodes.OK).json({ status: "success", data: { client } });
+  },
+);
+
+export const unblockClient = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const client = await clientService.unblockClient(id as string);
+
+    res.status(StatusCodes.OK).json({ status: "success", data: { client } });
+  },
+);

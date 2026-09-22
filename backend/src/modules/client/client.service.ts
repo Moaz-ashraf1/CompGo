@@ -1,10 +1,13 @@
 import {
   InvalidCredentialsError,
   PhoneAlreadyInUseError,
+  ClientNotFoundError,
 } from "../../exceptions/client.exceptions.js";
 import * as clientRepo from "./client.repo.js";
 import * as authRepo from "../auth/auth.repository.js";
+import * as tripService from "../trip/trip.service.js";
 import { comparePassword, hashPassword } from "../../utils/hash.js";
+import { ClientStatus } from "../../generated/prisma/client.js";
 import type {
   UpdateClientProfileDTO,
   ChangeClientPasswordDTO,
@@ -37,6 +40,39 @@ export const updateMe = async (
 };
 export const getAllClientsForAdmin = async () => {
   return clientRepo.findAllClients();
+};
+
+export const blockClient = async (id: string) => {
+  const client = await clientRepo.findClientById(id);
+  if (!client) throw new ClientNotFoundError();
+
+  if (client.status === ClientStatus.BLOCKED) return client;
+  return clientRepo.updateClientStatus(id, ClientStatus.BLOCKED);
+};
+
+export const unblockClient = async (id: string) => {
+  const client = await clientRepo.findClientById(id);
+  if (!client) throw new ClientNotFoundError();
+
+  if (client.status === ClientStatus.ACTIVE) return client;
+  return clientRepo.updateClientStatus(id, ClientStatus.ACTIVE);
+};
+
+/// Composes the dashboard's client detail page: the safe profile plus
+/// recent trip history (with captain info attached, since an admin can
+/// see everything) - no wallet/rating section here, since only captains
+/// carry a balance and only clients rate trips (not the other way
+/// around).
+export const getClientDetail = async (id: string) => {
+  const client = await clientRepo.findClientById(id);
+  if (!client) throw new ClientNotFoundError();
+
+  const trips = await tripService.getClientTrips(id);
+
+  return {
+    client,
+    recentTrips: trips.slice(0, 20),
+  };
 };
 
 export const changePassword = async (

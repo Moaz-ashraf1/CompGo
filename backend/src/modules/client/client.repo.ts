@@ -1,4 +1,5 @@
 import { prisma } from "../../config/prisma.js";
+import type { ClientStatus } from "../../generated/prisma/client.js";
 
 export const clientSafeSelect = {
   id: true,
@@ -76,6 +77,14 @@ export const updateClient = async (
   return prisma.client.update({
     where: { id },
     data,
+    select: clientSafeSelect,
+  });
+};
+
+export const updateClientStatus = async (id: string, status: ClientStatus) => {
+  return prisma.client.update({
+    where: { id },
+    data: { status },
     select: clientSafeSelect,
   });
 };

@@ -78,4 +78,26 @@ router.get(
   authorize("ADMIN"),
   clientController.getAllClients,
 );
+// Registered after every literal CLIENT-scoped route above (/me,
+// /trips, /pricing, /notifications, ...) so this ADMIN ":id" catch-all
+// never shadows one of them - see the notification-route note earlier
+// in this project for the exact bug this ordering avoids.
+router.get(
+  "/:id",
+  authenticate,
+  authorize("ADMIN"),
+  clientController.getClientDetail,
+);
+router.patch(
+  "/:id/block",
+  authenticate,
+  authorize("ADMIN"),
+  clientController.blockClient,
+);
+router.patch(
+  "/:id/unblock",
+  authenticate,
+  authorize("ADMIN"),
+  clientController.unblockClient,
+);
 export default router;
