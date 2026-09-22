@@ -7,17 +7,29 @@ const TOP_CAPTAINS_LIMIT = 5;
 const DAILY_TREND_DAYS = 14;
 
 export const getOverviewReport = async () => {
-  const [byStatus, byType, revenue, daily, completedByCaptain, accounts, pushEnabledCaptains, pushEnabledClients] =
-    await Promise.all([
-      reportsRepo.getTripCountsByStatus(),
-      reportsRepo.getTripCountsByType(),
-      reportsRepo.getCompletedTripRevenue(),
-      reportsRepo.getDailyCompletedTripCounts(DAILY_TREND_DAYS),
-      reportsRepo.getCompletedTripCountsByCaptain(),
-      reportsRepo.getAccountCounts(),
-      deviceTokenRepo.countDistinctAccountsByRole("CAPTAIN"),
-      deviceTokenRepo.countDistinctAccountsByRole("CLIENT"),
-    ]);
+  const [
+    byStatus,
+    byType,
+    revenue,
+    daily,
+    completedByCaptain,
+    accounts,
+    pushEnabledCaptains,
+    pushEnabledClients,
+    revenueByType,
+    cancellationStats,
+  ] = await Promise.all([
+    reportsRepo.getTripCountsByStatus(),
+    reportsRepo.getTripCountsByType(),
+    reportsRepo.getCompletedTripRevenue(),
+    reportsRepo.getDailyCompletedTripCounts(DAILY_TREND_DAYS),
+    reportsRepo.getCompletedTripCountsByCaptain(),
+    reportsRepo.getAccountCounts(),
+    deviceTokenRepo.countDistinctAccountsByRole("CAPTAIN"),
+    deviceTokenRepo.countDistinctAccountsByRole("CLIENT"),
+    reportsRepo.getRevenueByType(),
+    reportsRepo.getCancellationStats(),
+  ]);
 
   const topRaw = [...completedByCaptain]
     .sort((a, b) => b.tripCount - a.tripCount)
@@ -38,14 +50,33 @@ export const getOverviewReport = async () => {
     avgRating: ratingById.get(t.captainId)?._avg.rating ?? null,
   }));
 
+  const avgTripPrice =
+    revenue.completedTripsCount > 0
+      ? revenue.totalRevenue / revenue.completedTripsCount
+      : 0;
+  const cancellationRate =
+    cancellationStats.totalTrips > 0
+      ? (cancellationStats.cancelledTrips / cancellationStats.totalTrips) * 100
+      : 0;
+
   return {
     totalRevenue: revenue.totalRevenue,
     completedTripsCount: revenue.completedTripsCount,
+    avgTripPrice,
+    cancellationRate,
+    cancelledTripsCount: cancellationStats.cancelledTrips,
+    totalTripsCount: cancellationStats.totalTrips,
     tripsByStatus: byStatus,
     tripsByType: byType,
+    revenueByType: revenueByType.map((r) => ({
+      type: r.type,
+      revenue: r.revenue,
+      avgPrice: r.completedCount > 0 ? r.revenue / r.completedCount : 0,
+    })),
     dailyCompletedTrips: daily.map((d) => ({
       date: d.day,
       count: Number(d.count),
+      revenue: Number(d.revenue),
     })),
     topCaptains,
     totalCaptains: accounts.totalCaptains,
