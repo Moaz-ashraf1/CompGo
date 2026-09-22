@@ -1,5 +1,6 @@
 import * as notificationRepo from "./notification.repository.js";
 import * as captainRepo from "../captain/captain.repository.js";
+import * as clientRepo from "../client/client.repo.js";
 import {
   emitToClient,
   emitToCaptain,
@@ -97,4 +98,57 @@ export const markRead = async (id: string, accountId: string) => {
 
 export const markAllRead = async (accountId: string) => {
   await notificationRepo.markAllRead(accountId);
+};
+
+const NOTIFICATIONS_PAGE_SIZE = 20;
+
+/// Platform-wide notification log for the dashboard - a notification only
+/// carries `accountId`/`role` (no relation), so this batch-attaches the
+/// captain or client name/phone per role, same pattern as trip.service.ts
+/// attaching client/captain info onto trips.
+export const getAllForAdmin = async (params: {
+  role?: AccountRole;
+  page?: number;
+}) => {
+  const page = Math.max(1, params.page ?? 1);
+  const skip = (page - 1) * NOTIFICATIONS_PAGE_SIZE;
+
+  const [notifications, total] = await Promise.all([
+    notificationRepo.findAll({
+      role: params.role,
+      skip,
+      take: NOTIFICATIONS_PAGE_SIZE,
+    }),
+    notificationRepo.countAll({ role: params.role }),
+  ]);
+
+  const captainIds = [
+    ...new Set(
+      notifications.filter((n) => n.role === "CAPTAIN").map((n) => n.accountId),
+    ),
+  ];
+  const clientIds = [
+    ...new Set(
+      notifications.filter((n) => n.role === "CLIENT").map((n) => n.accountId),
+    ),
+  ];
+  const [captains, clients] = await Promise.all([
+    captainRepo.findCaptainsPublicByIds(captainIds),
+    clientRepo.findClientsPublicByIds(clientIds),
+  ]);
+  const captainById = new Map(captains.map((c) => [c.id, c]));
+  const clientById = new Map(clients.map((c) => [c.id, c]));
+
+  return {
+    notifications: notifications.map((n) => ({
+      ...n,
+      account:
+        n.role === "CAPTAIN"
+          ? (captainById.get(n.accountId) ?? null)
+          : (clientById.get(n.accountId) ?? null),
+    })),
+    total,
+    page,
+    pageSize: NOTIFICATIONS_PAGE_SIZE,
+  };
 };

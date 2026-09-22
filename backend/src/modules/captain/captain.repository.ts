@@ -214,3 +214,39 @@ export const findWalletTransactionsByCaptain = async (
     take: limit,
   });
 };
+
+/// Platform-wide wallet ledger - every manual admin adjustment across
+/// every captain, for the dashboard's Wallet report (see
+/// admin.service.ts -> getWalletTransactions). Per-captain history
+/// (above) only ever showed one captain at a time.
+export const findAllWalletTransactions = async (params: {
+  skip: number;
+  take: number;
+}) => {
+  return prisma.walletTransaction.findMany({
+    orderBy: { createdAt: "desc" },
+    skip: params.skip,
+    take: params.take,
+  });
+};
+
+export const countWalletTransactions = async () => {
+  return prisma.walletTransaction.count();
+};
+
+export const getWalletTransactionsSummary = async () => {
+  const [charged, paidOut] = await Promise.all([
+    prisma.walletTransaction.aggregate({
+      where: { amount: { gt: 0 } },
+      _sum: { amount: true },
+    }),
+    prisma.walletTransaction.aggregate({
+      where: { amount: { lt: 0 } },
+      _sum: { amount: true },
+    }),
+  ]);
+  return {
+    totalCharged: Number(charged._sum.amount ?? 0),
+    totalPaidOut: Math.abs(Number(paidOut._sum.amount ?? 0)),
+  };
+};

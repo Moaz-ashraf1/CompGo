@@ -51,3 +51,16 @@ export const removeInvalidTokens = async (tokens: string[]) => {
   if (tokens.length === 0) return;
   await prisma.deviceToken.deleteMany({ where: { token: { in: tokens } } });
 };
+
+/// How many distinct accounts of a role have at least one push token
+/// registered - used for the dashboard's "push enabled" stat (see
+/// reports.service.ts). A single account can have several tokens (one
+/// per device), so this counts accounts, not rows.
+export const countDistinctAccountsByRole = async (role: AccountRole) => {
+  const rows = await prisma.deviceToken.findMany({
+    where: { role },
+    select: { accountId: true },
+    distinct: ["accountId"],
+  });
+  return rows.length;
+};

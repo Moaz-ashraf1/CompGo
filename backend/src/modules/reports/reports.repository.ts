@@ -50,3 +50,11 @@ export const getCompletedTripCountsByCaptain = async () => {
     tripCount: r._count,
   }));
 };
+
+export const getAccountCounts = async () => {
+  const [totalCaptains, totalClients] = await Promise.all([
+    prisma.captain.count(),
+    prisma.client.count(),
+  ]);
+  return { totalCaptains, totalClients };
+};

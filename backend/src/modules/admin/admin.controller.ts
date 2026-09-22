@@ -90,3 +90,23 @@ export const getTripDetail = asyncHandler(
     res.status(StatusCodes.OK).json({ status: "success", data: { trip } });
   },
 );
+
+export const getTripMessages = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const messages = await adminService.getTripMessages(id as string);
+
+    res.status(StatusCodes.OK).json({ status: "success", data: { messages } });
+  },
+);
+
+export const getWalletTransactions = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { page } = req.query as { page?: string };
+    const result = await adminService.getWalletTransactions({
+      page: page ? Number(page) : undefined,
+    });
+
+    res.status(StatusCodes.OK).json({ status: "success", data: result });
+  },
+);

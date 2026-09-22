@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as adminController from "./admin.controller.js";
 import * as reportsController from "../reports/reports.controller.js";
+import * as notificationController from "../notification/notification.controller.js";
 import {
   updateCaptainPhoneSchema,
   resetPasswordSchema,
@@ -19,8 +20,13 @@ router.use(authenticate, authorize("ADMIN"));
 
 router.get("/reports/overview", reportsController.getOverview);
 
+router.get("/notifications", notificationController.getAllForAdmin);
+
+router.get("/wallet-transactions", adminController.getWalletTransactions);
+
 router.get("/trips", adminController.getTrips);
 router.get("/trips/:id", adminController.getTripDetail);
+router.get("/trips/:id/messages", adminController.getTripMessages);
 
 router.get("/captains/:id", adminController.getCaptainDetail);
 router.patch(

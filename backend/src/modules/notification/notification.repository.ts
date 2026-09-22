@@ -46,3 +46,25 @@ export const markAllRead = async (accountId: string) => {
     data: { read: true },
   });
 };
+
+/// Platform-wide notification log, optionally filtered by role - powers
+/// the dashboard's Notifications page (see notification.service.ts ->
+/// getAllForAdmin).
+export const findAll = async (params: {
+  role?: AccountRole;
+  skip: number;
+  take: number;
+}) => {
+  return prisma.notification.findMany({
+    where: params.role ? { role: params.role } : {},
+    orderBy: { createdAt: "desc" },
+    skip: params.skip,
+    take: params.take,
+  });
+};
+
+export const countAll = async (params: { role?: AccountRole }) => {
+  return prisma.notification.count({
+    where: params.role ? { role: params.role } : {},
+  });
+};

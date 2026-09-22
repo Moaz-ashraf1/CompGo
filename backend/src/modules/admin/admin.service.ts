@@ -3,12 +3,14 @@ import * as authRepo from "../auth/auth.repository.js";
 import * as captainRepo from "../captain/captain.repository.js";
 import * as tripRepo from "../trip/trip.repository.js";
 import * as tripService from "../trip/trip.service.js";
+import * as messageRepo from "../message/message.repository.js";
 import { hashPassword } from "../../utils/hash.js";
 import {
   CaptainNotFoundError,
   PhoneAlreadyInUseError,
 } from "../../exceptions/captain.exceptions.js";
 import { ClientNotFoundError } from "../../exceptions/client.exceptions.js";
+import { TripNotFoundError } from "../../exceptions/trip.exceptions.js";
 import type { TripStatus, TripType } from "../../generated/prisma/client.js";
 import type {
   UpdateCaptainPhoneDTO,
@@ -153,4 +155,48 @@ export const adjustCaptainBalance = async (
   ]);
 
   return updated;
+};
+
+const WALLET_TRANSACTIONS_PAGE_SIZE = 20;
+
+/// Every manual balance adjustment across every captain, for the
+/// dashboard's Wallet report - the per-captain history on the captain
+/// detail page only ever shows one captain's slice of this.
+export const getWalletTransactions = async (params: { page?: number }) => {
+  const page = Math.max(1, params.page ?? 1);
+  const skip = (page - 1) * WALLET_TRANSACTIONS_PAGE_SIZE;
+
+  const [transactions, total, summary] = await Promise.all([
+    captainRepo.findAllWalletTransactions({
+      skip,
+      take: WALLET_TRANSACTIONS_PAGE_SIZE,
+    }),
+    captainRepo.countWalletTransactions(),
+    captainRepo.getWalletTransactionsSummary(),
+  ]);
+
+  const captainIds = [...new Set(transactions.map((t) => t.captainId))];
+  const captains = await captainRepo.findCaptainsPublicByIds(captainIds);
+  const captainById = new Map(captains.map((c) => [c.id, c]));
+
+  return {
+    transactions: transactions.map((t) => ({
+      ...t,
+      captain: captainById.get(t.captainId) ?? null,
+    })),
+    total,
+    page,
+    pageSize: WALLET_TRANSACTIONS_PAGE_SIZE,
+    summary,
+  };
+};
+
+/// A trip's chat transcript for the dashboard's trip detail page - an
+/// admin can read any conversation, unlike message.service.ts's
+/// resolveSender (which only lets the trip's own client/captain in).
+export const getTripMessages = async (tripId: string) => {
+  const trip = await tripRepo.findTripById(tripId);
+  if (!trip) throw new TripNotFoundError();
+
+  return messageRepo.findByTripId(tripId);
 };

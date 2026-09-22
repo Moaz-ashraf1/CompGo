@@ -1,18 +1,22 @@
 import * as reportsRepo from "./reports.repository.js";
 import * as captainRepo from "../captain/captain.repository.js";
 import * as tripRepo from "../trip/trip.repository.js";
+import * as deviceTokenRepo from "../device-token/device-token.repository.js";
 
 const TOP_CAPTAINS_LIMIT = 5;
 const DAILY_TREND_DAYS = 14;
 
 export const getOverviewReport = async () => {
-  const [byStatus, byType, revenue, daily, completedByCaptain] =
+  const [byStatus, byType, revenue, daily, completedByCaptain, accounts, pushEnabledCaptains, pushEnabledClients] =
     await Promise.all([
       reportsRepo.getTripCountsByStatus(),
       reportsRepo.getTripCountsByType(),
       reportsRepo.getCompletedTripRevenue(),
       reportsRepo.getDailyCompletedTripCounts(DAILY_TREND_DAYS),
       reportsRepo.getCompletedTripCountsByCaptain(),
+      reportsRepo.getAccountCounts(),
+      deviceTokenRepo.countDistinctAccountsByRole("CAPTAIN"),
+      deviceTokenRepo.countDistinctAccountsByRole("CLIENT"),
     ]);
 
   const topRaw = [...completedByCaptain]
@@ -44,5 +48,9 @@ export const getOverviewReport = async () => {
       count: Number(d.count),
     })),
     topCaptains,
+    totalCaptains: accounts.totalCaptains,
+    totalClients: accounts.totalClients,
+    pushEnabledCaptains,
+    pushEnabledClients,
   };
 };
