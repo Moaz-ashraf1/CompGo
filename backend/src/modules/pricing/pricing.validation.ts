@@ -18,8 +18,16 @@ export const updatePricingSchema = z
     outsideCompoundThresholdKm: z.number().min(0).optional(),
     // How an ORDER trip covering more than one pickup place gets priced
     // (see trip.service.ts -> calculatePrice).
-    orderPlacesMode: z.enum(["FLAT", "PER_PLACE"]).default("FLAT"),
+    orderPlacesMode: z.enum(["FLAT", "PER_PLACE", "TIERED"]).default("FLAT"),
     orderExtraPlacePrice: z.number().min(0).optional(),
+    orderPlaceTiers: z
+      .array(
+        z.object({
+          minPlaces: z.number().int().min(2),
+          price: z.number().min(0),
+        }),
+      )
+      .optional(),
   })
   .refine(
     (data) =>
@@ -48,6 +56,15 @@ export const updatePricingSchema = z
     {
       message: "orderExtraPlacePrice is required for PER_PLACE mode",
       path: ["orderExtraPlacePrice"],
+    },
+  )
+  .refine(
+    (data) =>
+      data.orderPlacesMode !== "TIERED" ||
+      (data.orderPlaceTiers !== undefined && data.orderPlaceTiers.length > 0),
+    {
+      message: "orderPlaceTiers is required for TIERED mode",
+      path: ["orderPlaceTiers"],
     },
   );
 

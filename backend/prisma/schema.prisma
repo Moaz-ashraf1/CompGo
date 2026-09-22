@@ -191,6 +191,7 @@ enum OutsideCompoundPricingMode {
 enum OrderPlacesPricingMode {
   FLAT
   PER_PLACE
+  TIERED
 }
 
 model PricingConfig {
@@ -215,8 +216,13 @@ model PricingConfig {
   //   FLAT (default, original behaviour) - always orderInsideCompoundPrice
   //   PER_PLACE - orderInsideCompoundPrice for the first place, plus
   //               orderExtraPlacePrice for every place beyond it
+  //   TIERED - orderInsideCompoundPrice for 1 place, then orderPlaceTiers
+  //            is a JSON array of {minPlaces, price} set by the admin -
+  //            the tier with the highest minPlaces <= placesCount wins
+  //            (e.g. [{minPlaces:2,price:80},{minPlaces:3,price:120}])
   orderPlacesMode      OrderPlacesPricingMode @default(FLAT)
   orderExtraPlacePrice Decimal?               @db.Decimal(10, 2)
+  orderPlaceTiers      Json?
   updatedAt                DateTime @updatedAt
 }
 

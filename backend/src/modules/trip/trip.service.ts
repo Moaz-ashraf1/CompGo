@@ -125,6 +125,19 @@ const calculatePrice = async (params: {
         extraPlaces * Number(pricing.orderExtraPlacePrice ?? 0)
       );
     }
+    if (pricing.orderPlacesMode === "TIERED") {
+      const places = params.placesCount ?? 1;
+      const tiers =
+        (pricing.orderPlaceTiers as
+          | { minPlaces: number; price: number }[]
+          | null) ?? [];
+      const matched = tiers
+        .filter((t) => t.minPlaces <= places)
+        .sort((a, b) => b.minPlaces - a.minPlaces)[0];
+      return matched
+        ? Number(matched.price)
+        : Number(pricing.orderInsideCompoundPrice);
+    }
     return Number(pricing.orderInsideCompoundPrice);
   }
 

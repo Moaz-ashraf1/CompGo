@@ -23,6 +23,7 @@ export const getPublicPricing = async () => {
     outsideCompoundThresholdKm: pricing.outsideCompoundThresholdKm,
     orderPlacesMode: pricing.orderPlacesMode,
     orderExtraPlacePrice: pricing.orderExtraPlacePrice,
+    orderPlaceTiers: pricing.orderPlaceTiers,
   };
 };
 
