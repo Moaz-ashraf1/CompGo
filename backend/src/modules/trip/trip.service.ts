@@ -106,6 +106,7 @@ const calculatePrice = async (params: {
   type: TripType;
   isInsideCompound: boolean;
   distanceKm: number | null;
+  placesCount: number | null;
 }) => {
   const pricing = await pricingRepo.findPricingConfig();
   if (!pricing) throw new NoPricingConfigError();
@@ -116,6 +117,14 @@ const calculatePrice = async (params: {
 
   if (params.type === TripType.ORDER) {
     if (!params.isInsideCompound) throw new OrderOutsideCompoundError();
+
+    if (pricing.orderPlacesMode === "PER_PLACE") {
+      const extraPlaces = Math.max(0, (params.placesCount ?? 1) - 1);
+      return (
+        Number(pricing.orderInsideCompoundPrice) +
+        extraPlaces * Number(pricing.orderExtraPlacePrice ?? 0)
+      );
+    }
     return Number(pricing.orderInsideCompoundPrice);
   }
 
@@ -208,6 +217,7 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
     type: data.type as TripType,
     isInsideCompound,
     distanceKm,
+    placesCount: data.placesCount ?? null,
   });
 
   const created = await tripRepo.createTrip({
@@ -230,6 +240,7 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
     luggageCount: data.luggageCount ?? null,
     flightNumber: data.flightNumber ?? null,
     femaleCaptainOnly: data.femaleCaptainOnly ?? false,
+    placesCount: data.placesCount ?? null,
   });
 
   const isDueNow =

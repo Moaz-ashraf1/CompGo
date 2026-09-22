@@ -16,6 +16,10 @@ export const updatePricingSchema = z
     outsideCompoundFlatPrice: z.number().positive().optional(),
     outsideCompoundBasePrice: z.number().min(0).optional(),
     outsideCompoundThresholdKm: z.number().min(0).optional(),
+    // How an ORDER trip covering more than one pickup place gets priced
+    // (see trip.service.ts -> calculatePrice).
+    orderPlacesMode: z.enum(["FLAT", "PER_PLACE"]).default("FLAT"),
+    orderExtraPlacePrice: z.number().min(0).optional(),
   })
   .refine(
     (data) =>
@@ -35,6 +39,15 @@ export const updatePricingSchema = z
       message:
         "outsideCompoundBasePrice and outsideCompoundThresholdKm are required for THRESHOLD mode",
       path: ["outsideCompoundThresholdKm"],
+    },
+  )
+  .refine(
+    (data) =>
+      data.orderPlacesMode !== "PER_PLACE" ||
+      data.orderExtraPlacePrice !== undefined,
+    {
+      message: "orderExtraPlacePrice is required for PER_PLACE mode",
+      path: ["orderExtraPlacePrice"],
     },
   );
 

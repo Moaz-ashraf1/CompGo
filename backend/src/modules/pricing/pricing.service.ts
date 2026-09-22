@@ -21,6 +21,8 @@ export const getPublicPricing = async () => {
     outsideCompoundFlatPrice: pricing.outsideCompoundFlatPrice,
     outsideCompoundBasePrice: pricing.outsideCompoundBasePrice,
     outsideCompoundThresholdKm: pricing.outsideCompoundThresholdKm,
+    orderPlacesMode: pricing.orderPlacesMode,
+    orderExtraPlacePrice: pricing.orderExtraPlacePrice,
   };
 };
 

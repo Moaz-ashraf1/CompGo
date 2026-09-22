@@ -188,6 +188,11 @@ enum OutsideCompoundPricingMode {
   THRESHOLD
 }
 
+enum OrderPlacesPricingMode {
+  FLAT
+  PER_PLACE
+}
+
 model PricingConfig {
   id                       String   @id @default(uuid())
   rideInsideCompoundPrice  Decimal  @db.Decimal(10, 2)
@@ -205,6 +210,13 @@ model PricingConfig {
   outsideCompoundFlatPrice   Decimal?                   @db.Decimal(10, 2)
   outsideCompoundBasePrice   Decimal?                   @db.Decimal(10, 2)
   outsideCompoundThresholdKm Decimal?                   @db.Decimal(10, 2)
+  // How an ORDER trip covering more than one pickup place gets priced
+  // (see trip.service.ts -> calculatePrice):
+  //   FLAT (default, original behaviour) - always orderInsideCompoundPrice
+  //   PER_PLACE - orderInsideCompoundPrice for the first place, plus
+  //               orderExtraPlacePrice for every place beyond it
+  orderPlacesMode      OrderPlacesPricingMode @default(FLAT)
+  orderExtraPlacePrice Decimal?               @db.Decimal(10, 2)
   updatedAt                DateTime @updatedAt
 }
 
@@ -242,6 +254,10 @@ model PricingConfig {
    passengers       Int?
    luggageCount     Int?
    flightNumber     String?
+   // How many separate pickup places an ORDER trip combined into one
+   // request (see trip.service.ts -> calculatePrice) - null/1 for a
+   // single-place order, and for every other trip type.
+   placesCount      Int?
    // Set once by the client after a COMPLETED trip (see trip.service.ts
    // -> rateTrip). 1-5, enforced in trip.validation.ts, not at the DB
    // level.

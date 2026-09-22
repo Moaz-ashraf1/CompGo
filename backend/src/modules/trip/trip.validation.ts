@@ -21,6 +21,10 @@ export const createTripSchema = z
     // in trip.service.ts (requestTrip), never trusted from the client
     // alone.
     femaleCaptainOnly: z.boolean().optional(),
+    // How many separate pickup places an ORDER trip combines into one
+    // request - drives the PER_PLACE pricing mode (see trip.service.ts ->
+    // calculatePrice). Ignored for other trip types.
+    placesCount: z.number().int().min(1).max(10).optional(),
   })
   .refine(
     (data) =>
