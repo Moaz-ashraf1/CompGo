@@ -19,6 +19,9 @@ router.use(authenticate, authorize("ADMIN"));
 
 router.get("/reports/overview", reportsController.getOverview);
 
+router.get("/trips", adminController.getTrips);
+router.get("/trips/:id", adminController.getTripDetail);
+
 router.get("/captains/:id", adminController.getCaptainDetail);
 router.patch(
   "/captains/:id/phone",

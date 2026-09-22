@@ -60,8 +60,14 @@ export const markTripDispatched = async (id: string) => {
   });
 };
 
-export const findAllTrips = async () => {
+export const findAllTrips = async (
+  filters: { status?: TripStatus; type?: TripType } = {},
+) => {
   return prisma.trip.findMany({
+    where: {
+      ...(filters.status ? { status: filters.status } : {}),
+      ...(filters.type ? { type: filters.type } : {}),
+    },
     orderBy: { createdAt: "desc" },
   });
 };

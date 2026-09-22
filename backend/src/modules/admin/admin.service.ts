@@ -9,6 +9,7 @@ import {
   PhoneAlreadyInUseError,
 } from "../../exceptions/captain.exceptions.js";
 import { ClientNotFoundError } from "../../exceptions/client.exceptions.js";
+import type { TripStatus, TripType } from "../../generated/prisma/client.js";
 import type {
   UpdateCaptainPhoneDTO,
   ResetPasswordDTO,
@@ -86,6 +87,50 @@ export const getCaptainDetail = async (captainId: string) => {
     ratingStats,
     recentTrips: trips.slice(0, 20),
     walletTransactions,
+  };
+};
+
+const TRIPS_PAGE_SIZE = 20;
+
+/// Every trip on the platform, filterable by status/type and searchable
+/// by the client's or captain's name/phone - powers the dashboard's
+/// Trips page (the previous gap: `getAllTrips` existed but nothing ever
+/// called it). Search is done in-memory after attaching client/captain
+/// info rather than as a DB join, which is fine at this platform's scale
+/// and avoids a much more complex query.
+export const getTrips = async (params: {
+  status?: TripStatus;
+  type?: TripType;
+  search?: string;
+  page?: number;
+}) => {
+  const trips = await tripService.getAllTrips({
+    status: params.status,
+    type: params.type,
+  });
+
+  const query = params.search?.trim().toLowerCase();
+  const filtered = query
+    ? trips.filter((t) => {
+        const client = t.client as { name: string; phone: string } | null;
+        const captain = t.captain as { name: string; phone: string } | null;
+        return (
+          client?.name.toLowerCase().includes(query) ||
+          client?.phone.includes(query) ||
+          captain?.name.toLowerCase().includes(query) ||
+          captain?.phone.includes(query)
+        );
+      })
+    : trips;
+
+  const page = Math.max(1, params.page ?? 1);
+  const start = (page - 1) * TRIPS_PAGE_SIZE;
+
+  return {
+    trips: filtered.slice(start, start + TRIPS_PAGE_SIZE),
+    total: filtered.length,
+    page,
+    pageSize: TRIPS_PAGE_SIZE,
   };
 };
 

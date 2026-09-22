@@ -2,6 +2,8 @@ import asyncHandler from "express-async-handler";
 import type { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import * as adminService from "./admin.service.js";
+import * as tripService from "../trip/trip.service.js";
+import type { TripStatus, TripType } from "../../generated/prisma/client.js";
 
 export const updateCaptainPhone = asyncHandler(
   async (req: Request, res: Response) => {
@@ -60,5 +62,31 @@ export const adjustCaptainBalance = asyncHandler(
     );
 
     res.status(StatusCodes.OK).json({ status: "success", data: { captain } });
+  },
+);
+
+export const getTrips = asyncHandler(async (req: Request, res: Response) => {
+  const { status, type, search, page } = req.query as {
+    status?: TripStatus;
+    type?: TripType;
+    search?: string;
+    page?: string;
+  };
+  const result = await adminService.getTrips({
+    status,
+    type,
+    search,
+    page: page ? Number(page) : undefined,
+  });
+
+  res.status(StatusCodes.OK).json({ status: "success", data: result });
+});
+
+export const getTripDetail = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const trip = await tripService.getTripById(id as string);
+
+    res.status(StatusCodes.OK).json({ status: "success", data: { trip } });
   },
 );
