@@ -17,6 +17,10 @@ export const getPublicPricing = async () => {
     rideOutsidePricePerKm: pricing.rideOutsidePricePerKm,
     orderInsideCompoundPrice: pricing.orderInsideCompoundPrice,
     airportPrice: pricing.airportPrice,
+    outsideCompoundMode: pricing.outsideCompoundMode,
+    outsideCompoundFlatPrice: pricing.outsideCompoundFlatPrice,
+    outsideCompoundBasePrice: pricing.outsideCompoundBasePrice,
+    outsideCompoundThresholdKm: pricing.outsideCompoundThresholdKm,
   };
 };
 

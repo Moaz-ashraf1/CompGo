@@ -121,7 +121,20 @@ const calculatePrice = async (params: {
 
   if (params.isInsideCompound) return Number(pricing.rideInsideCompoundPrice);
   if (params.distanceKm === null) throw new MissingDropoffError();
-  return params.distanceKm * Number(pricing.rideOutsidePricePerKm);
+
+  switch (pricing.outsideCompoundMode) {
+    case "FLAT":
+      return Number(pricing.outsideCompoundFlatPrice ?? 0);
+    case "THRESHOLD": {
+      const thresholdKm = Number(pricing.outsideCompoundThresholdKm ?? 0);
+      const basePrice = Number(pricing.outsideCompoundBasePrice ?? 0);
+      const extraKm = Math.max(0, params.distanceKm - thresholdKm);
+      return basePrice + extraKm * Number(pricing.rideOutsidePricePerKm);
+    }
+    case "PER_KM":
+    default:
+      return params.distanceKm * Number(pricing.rideOutsidePricePerKm);
+  }
 };
 
 const AIRPORT_LABEL = "مطار القاهرة الدولي";

@@ -182,6 +182,12 @@ model CompoundBoundary {
   updatedAt DateTime @updatedAt
 }
 
+enum OutsideCompoundPricingMode {
+  PER_KM
+  FLAT
+  THRESHOLD
+}
+
 model PricingConfig {
   id                       String   @id @default(uuid())
   rideInsideCompoundPrice  Decimal  @db.Decimal(10, 2)
@@ -189,6 +195,16 @@ model PricingConfig {
   orderInsideCompoundPrice Decimal  @db.Decimal(10, 2)
   commissionPercentage     Decimal  @default(15) @db.Decimal(5, 2)
   airportPrice             Decimal  @db.Decimal(10, 2)
+  // How a RIDE trip starting outside the compound gets priced (see
+  // trip.service.ts -> calculatePrice):
+  //   PER_KM (default, original behaviour) - full distance * rideOutsidePricePerKm
+  //   FLAT - outsideCompoundFlatPrice regardless of distance
+  //   THRESHOLD - outsideCompoundBasePrice + rideOutsidePricePerKm for every
+  //               km beyond outsideCompoundThresholdKm
+  outsideCompoundMode        OutsideCompoundPricingMode @default(PER_KM)
+  outsideCompoundFlatPrice   Decimal?                   @db.Decimal(10, 2)
+  outsideCompoundBasePrice   Decimal?                   @db.Decimal(10, 2)
+  outsideCompoundThresholdKm Decimal?                   @db.Decimal(10, 2)
   updatedAt                DateTime @updatedAt
 }
 
