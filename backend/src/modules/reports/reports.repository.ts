@@ -112,6 +112,66 @@ export const getCaptainCommissionBreakdown = async (params: {
   }));
 };
 
+/// Captain-initiated cancellations only (see Trip.cancelledBy) within an
+/// optional date range - the raw material for the bonus report's
+/// cancellation-count criterion (see reports.service.ts ->
+/// getCaptainBonusesReport).
+export const getCaptainCancellationCounts = async (params: {
+  from?: Date;
+  to?: Date;
+}) => {
+  const rows = await prisma.trip.groupBy({
+    by: ["captainId"],
+    where: {
+      status: TripStatus.CANCELLED,
+      cancelledBy: "CAPTAIN",
+      captainId: { not: null },
+      ...(params.from || params.to
+        ? {
+            cancelledAt: {
+              ...(params.from ? { gte: params.from } : {}),
+              ...(params.to ? { lte: params.to } : {}),
+            },
+          }
+        : {}),
+    },
+    _count: true,
+  });
+  return rows.map((r) => ({
+    captainId: r.captainId as string,
+    cancellationCount: r._count,
+  }));
+};
+
+/// Average client rating per captain, over trips rated within an optional
+/// date range (only COMPLETED trips ever have a rating) - the raw material
+/// for the bonus report's rating criterion.
+export const getCaptainAvgRatings = async (params: {
+  from?: Date;
+  to?: Date;
+}) => {
+  const rows = await prisma.trip.groupBy({
+    by: ["captainId"],
+    where: {
+      rating: { not: null },
+      captainId: { not: null },
+      ...(params.from || params.to
+        ? {
+            completedAt: {
+              ...(params.from ? { gte: params.from } : {}),
+              ...(params.to ? { lte: params.to } : {}),
+            },
+          }
+        : {}),
+    },
+    _avg: { rating: true },
+  });
+  return rows.map((r) => ({
+    captainId: r.captainId as string,
+    avgRating: r._avg.rating,
+  }));
+};
+
 export const getAccountCounts = async () => {
   const [totalCaptains, totalClients] = await Promise.all([
     prisma.captain.count(),

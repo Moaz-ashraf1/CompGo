@@ -206,6 +206,25 @@ model AppSettings {
   updatedAt             DateTime @updatedAt
 }
 
+/// An admin-defined performance tier a captain can qualify for over a
+/// chosen date range (see reports.service.ts -> getCaptainBonusesReport) -
+/// a captain meeting ALL of this tier's minimums earns bonusPercentage of
+/// their trip revenue in that range as a bonus. A captain is matched to
+/// whichever tier they qualify for with the highest bonusPercentage, not
+/// just the first one that fits. `minAvgRating`/`maxCancellations` being
+/// null means that criterion isn't required for this tier.
+model CaptainBonusTier {
+  id               String   @id @default(uuid())
+  label            String
+  minInsideTrips   Int      @default(0)
+  minOutsideTrips  Int      @default(0)
+  minAvgRating     Decimal? @db.Decimal(3, 2)
+  maxCancellations Int?
+  bonusPercentage  Decimal  @db.Decimal(5, 2)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
 enum OutsideCompoundPricingMode {
   PER_KM
   FLAT
@@ -266,6 +285,12 @@ model Trip {
   distanceKm           Decimal?      @db.Decimal(10, 2)
   price                Decimal       @db.Decimal(10, 2)
   cancelReason         String?
+  // Who cancelled it - null for a trip that was never cancelled, or one
+  // cancelled before this field existed. Drives the "captain cancellation
+  // count" used by the bonus report (see reports.service.ts ->
+  // getCaptainBonusesReport) - only CAPTAIN-initiated cancellations count
+  // against a captain there, not client-initiated ones.
+  cancelledBy          AccountRole?
   paymentMethod        PaymentMethod @default(CASH)
   // Only a FEMALE client may set this (enforced in trip.service.ts ->
   // requestTrip) - restricts which captains can see/accept the trip to

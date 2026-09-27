@@ -336,6 +336,7 @@ export const cancelClientTrip = async (
     status: TripStatus.CANCELLED,
     cancelledAt: new Date(),
     cancelReason: data.reason ?? null,
+    cancelledBy: "CLIENT",
   });
 
   if (trip.status === TripStatus.REQUESTED) {
@@ -480,6 +481,7 @@ export const cancelCaptainTrip = async (
     status: TripStatus.CANCELLED,
     cancelledAt: new Date(),
     cancelReason: data.reason ?? null,
+    cancelledBy: "CAPTAIN",
   });
   emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(cancelled));
   void notifyAccount(trip.clientId, "CLIENT", {

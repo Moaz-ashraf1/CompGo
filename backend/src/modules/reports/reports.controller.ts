@@ -33,3 +33,14 @@ export const getCaptainCommissions = asyncHandler(
     res.status(StatusCodes.OK).json({ status: "success", data: report });
   },
 );
+
+export const getCaptainBonuses = asyncHandler(
+  async (req: Request, res: Response) => {
+    const report = await reportsService.getCaptainBonusesReport({
+      from: parseDateParam(req.query.from, false),
+      to: parseDateParam(req.query.to, true),
+    });
+
+    res.status(StatusCodes.OK).json({ status: "success", data: report });
+  },
+);

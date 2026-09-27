@@ -2,12 +2,17 @@ import { Router } from "express";
 import * as adminController from "./admin.controller.js";
 import * as reportsController from "../reports/reports.controller.js";
 import * as notificationController from "../notification/notification.controller.js";
+import * as bonusTierController from "../bonus-tier/bonus-tier.controller.js";
 import {
   updateCaptainPhoneSchema,
   resetPasswordSchema,
   resetClientPasswordByPhoneSchema,
   adjustCaptainBalanceSchema,
 } from "./admin.validation.js";
+import {
+  createBonusTierSchema,
+  updateBonusTierSchema,
+} from "../bonus-tier/bonus-tier.validation.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import { authenticate, authorize } from "../../middlewares/auth.js";
 import authRouter from "./auth/auth.route.js";
@@ -23,6 +28,20 @@ router.get(
   "/reports/captain-commissions",
   reportsController.getCaptainCommissions,
 );
+router.get("/reports/captain-bonuses", reportsController.getCaptainBonuses);
+
+router.get("/bonus-tiers", bonusTierController.getAllBonusTiers);
+router.post(
+  "/bonus-tiers",
+  validate(createBonusTierSchema),
+  bonusTierController.createBonusTier,
+);
+router.patch(
+  "/bonus-tiers/:id",
+  validate(updateBonusTierSchema),
+  bonusTierController.updateBonusTier,
+);
+router.delete("/bonus-tiers/:id", bonusTierController.deleteBonusTier);
 
 router.get("/notifications", notificationController.getAllForAdmin);
 
