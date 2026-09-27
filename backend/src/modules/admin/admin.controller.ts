@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import * as adminService from "./admin.service.js";
 import * as tripService from "../trip/trip.service.js";
 import type { TripStatus, TripType } from "../../generated/prisma/client.js";
+import { parseDateParam } from "../../utils/parseDateParam.js";
 
 export const updateCaptainPhone = asyncHandler(
   async (req: Request, res: Response) => {
@@ -66,15 +67,20 @@ export const adjustCaptainBalance = asyncHandler(
 );
 
 export const getTrips = asyncHandler(async (req: Request, res: Response) => {
-  const { status, type, search, page } = req.query as {
+  const { status, type, isInsideCompound, search, page } = req.query as {
     status?: TripStatus;
     type?: TripType;
+    isInsideCompound?: string;
     search?: string;
     page?: string;
   };
   const result = await adminService.getTrips({
     status,
     type,
+    isInsideCompound:
+      isInsideCompound === undefined ? undefined : isInsideCompound === "true",
+    from: parseDateParam(req.query.from, false),
+    to: parseDateParam(req.query.to, true),
     search,
     page: page ? Number(page) : undefined,
   });
@@ -105,6 +111,8 @@ export const getWalletTransactions = asyncHandler(
     const { page } = req.query as { page?: string };
     const result = await adminService.getWalletTransactions({
       page: page ? Number(page) : undefined,
+      from: parseDateParam(req.query.from, false),
+      to: parseDateParam(req.query.to, true),
     });
 
     res.status(StatusCodes.OK).json({ status: "success", data: result });

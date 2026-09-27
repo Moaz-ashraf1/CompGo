@@ -501,7 +501,13 @@ export const getCaptainTrips = async (
 };
 
 export const getAllTrips = async (
-  filters: { status?: TripStatus; type?: TripType } = {},
+  filters: {
+    status?: TripStatus;
+    type?: TripType;
+    isInsideCompound?: boolean;
+    from?: Date;
+    to?: Date;
+  } = {},
 ) => {
   const trips = await tripRepo.findAllTrips(filters);
   return attachCaptainInfo(await attachClientInfo(trips, { withPhone: true }));

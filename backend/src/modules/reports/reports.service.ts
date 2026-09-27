@@ -8,7 +8,9 @@ import * as bonusTierRepo from "../bonus-tier/bonus-tier.repository.js";
 const TOP_CAPTAINS_LIMIT = 5;
 const DAILY_TREND_DAYS = 14;
 
-export const getOverviewReport = async () => {
+export const getOverviewReport = async (
+  params: { from?: Date; to?: Date } = {},
+) => {
   const [
     byStatus,
     byType,
@@ -21,16 +23,19 @@ export const getOverviewReport = async () => {
     revenueByType,
     cancellationStats,
   ] = await Promise.all([
-    reportsRepo.getTripCountsByStatus(),
-    reportsRepo.getTripCountsByType(),
-    reportsRepo.getCompletedTripRevenue(),
-    reportsRepo.getDailyCompletedTripCounts(DAILY_TREND_DAYS),
-    reportsRepo.getCompletedTripCountsByCaptain(),
+    reportsRepo.getTripCountsByStatus(params),
+    reportsRepo.getTripCountsByType(params),
+    reportsRepo.getCompletedTripRevenue(params),
+    reportsRepo.getDailyCompletedTripCounts({
+      ...params,
+      fallbackDays: DAILY_TREND_DAYS,
+    }),
+    reportsRepo.getCompletedTripCountsByCaptain(params),
     reportsRepo.getAccountCounts(),
     deviceTokenRepo.countDistinctAccountsByRole("CAPTAIN"),
     deviceTokenRepo.countDistinctAccountsByRole("CLIENT"),
-    reportsRepo.getRevenueByType(),
-    reportsRepo.getCancellationStats(),
+    reportsRepo.getRevenueByType(params),
+    reportsRepo.getCancellationStats(params),
   ]);
 
   const topRaw = [...completedByCaptain]

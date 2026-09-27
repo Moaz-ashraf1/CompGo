@@ -233,29 +233,47 @@ export const findWalletTransactionsByCaptain = async (
 /// every captain, for the dashboard's Wallet report (see
 /// admin.service.ts -> getWalletTransactions). Per-captain history
 /// (above) only ever showed one captain at a time.
+const walletDateWhere = (params: { from?: Date; to?: Date }) =>
+  params.from || params.to
+    ? {
+        createdAt: {
+          ...(params.from ? { gte: params.from } : {}),
+          ...(params.to ? { lte: params.to } : {}),
+        },
+      }
+    : {};
+
 export const findAllWalletTransactions = async (params: {
   skip: number;
   take: number;
+  from?: Date;
+  to?: Date;
 }) => {
   return prisma.walletTransaction.findMany({
+    where: walletDateWhere(params),
     orderBy: { createdAt: "desc" },
     skip: params.skip,
     take: params.take,
   });
 };
 
-export const countWalletTransactions = async () => {
-  return prisma.walletTransaction.count();
+export const countWalletTransactions = async (
+  params: { from?: Date; to?: Date } = {},
+) => {
+  return prisma.walletTransaction.count({ where: walletDateWhere(params) });
 };
 
-export const getWalletTransactionsSummary = async () => {
+export const getWalletTransactionsSummary = async (
+  params: { from?: Date; to?: Date } = {},
+) => {
+  const dateWhere = walletDateWhere(params);
   const [charged, paidOut] = await Promise.all([
     prisma.walletTransaction.aggregate({
-      where: { amount: { gt: 0 } },
+      where: { ...dateWhere, amount: { gt: 0 } },
       _sum: { amount: true },
     }),
     prisma.walletTransaction.aggregate({
-      where: { amount: { lt: 0 } },
+      where: { ...dateWhere, amount: { lt: 0 } },
       _sum: { amount: true },
     }),
   ]);

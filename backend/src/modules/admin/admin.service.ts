@@ -104,12 +104,18 @@ const TRIPS_PAGE_SIZE = 20;
 export const getTrips = async (params: {
   status?: TripStatus;
   type?: TripType;
+  isInsideCompound?: boolean;
+  from?: Date;
+  to?: Date;
   search?: string;
   page?: number;
 }) => {
   const trips = await tripService.getAllTrips({
     status: params.status,
     type: params.type,
+    isInsideCompound: params.isInsideCompound,
+    from: params.from,
+    to: params.to,
   });
 
   const query = params.search?.trim().toLowerCase();
@@ -169,7 +175,11 @@ const WALLET_TRANSACTIONS_PAGE_SIZE = 20;
 /// Every manual balance adjustment across every captain, for the
 /// dashboard's Wallet report - the per-captain history on the captain
 /// detail page only ever shows one captain's slice of this.
-export const getWalletTransactions = async (params: { page?: number }) => {
+export const getWalletTransactions = async (params: {
+  page?: number;
+  from?: Date;
+  to?: Date;
+}) => {
   const page = Math.max(1, params.page ?? 1);
   const skip = (page - 1) * WALLET_TRANSACTIONS_PAGE_SIZE;
 
@@ -177,9 +187,14 @@ export const getWalletTransactions = async (params: { page?: number }) => {
     captainRepo.findAllWalletTransactions({
       skip,
       take: WALLET_TRANSACTIONS_PAGE_SIZE,
+      from: params.from,
+      to: params.to,
     }),
-    captainRepo.countWalletTransactions(),
-    captainRepo.getWalletTransactionsSummary(),
+    captainRepo.countWalletTransactions({ from: params.from, to: params.to }),
+    captainRepo.getWalletTransactionsSummary({
+      from: params.from,
+      to: params.to,
+    }),
   ]);
 
   const captainIds = [...new Set(transactions.map((t) => t.captainId))];

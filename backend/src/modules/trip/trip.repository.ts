@@ -61,12 +61,29 @@ export const markTripDispatched = async (id: string) => {
 };
 
 export const findAllTrips = async (
-  filters: { status?: TripStatus; type?: TripType } = {},
+  filters: {
+    status?: TripStatus;
+    type?: TripType;
+    isInsideCompound?: boolean;
+    from?: Date;
+    to?: Date;
+  } = {},
 ) => {
   return prisma.trip.findMany({
     where: {
       ...(filters.status ? { status: filters.status } : {}),
       ...(filters.type ? { type: filters.type } : {}),
+      ...(filters.isInsideCompound !== undefined
+        ? { isInsideCompound: filters.isInsideCompound }
+        : {}),
+      ...(filters.from || filters.to
+        ? {
+            requestedAt: {
+              ...(filters.from ? { gte: filters.from } : {}),
+              ...(filters.to ? { lte: filters.to } : {}),
+            },
+          }
+        : {}),
     },
     orderBy: { createdAt: "desc" },
   });
