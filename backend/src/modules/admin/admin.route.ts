@@ -19,6 +19,10 @@ router.use("/auth", authRouter);
 router.use(authenticate, authorize("ADMIN"));
 
 router.get("/reports/overview", reportsController.getOverview);
+router.get(
+  "/reports/captain-commissions",
+  reportsController.getCaptainCommissions,
+);
 
 router.get("/notifications", notificationController.getAllForAdmin);
 

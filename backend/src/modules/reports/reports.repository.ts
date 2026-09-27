@@ -78,6 +78,40 @@ export const getCompletedTripCountsByCaptain = async () => {
   }));
 };
 
+/// Per-captain, split by inside/outside-compound - the raw material for
+/// the dashboard's "company commission by captain" report (see
+/// reports.service.ts -> getCaptainCommissionsReport). Only COMPLETED
+/// trips count, same as every other revenue figure in this module -
+/// commission is only actually realized once a trip finishes.
+export const getCaptainCommissionBreakdown = async (params: {
+  from?: Date;
+  to?: Date;
+}) => {
+  const rows = await prisma.trip.groupBy({
+    by: ["captainId", "isInsideCompound"],
+    where: {
+      status: TripStatus.COMPLETED,
+      captainId: { not: null },
+      ...(params.from || params.to
+        ? {
+            completedAt: {
+              ...(params.from ? { gte: params.from } : {}),
+              ...(params.to ? { lte: params.to } : {}),
+            },
+          }
+        : {}),
+    },
+    _sum: { price: true },
+    _count: true,
+  });
+  return rows.map((r) => ({
+    captainId: r.captainId as string,
+    isInsideCompound: r.isInsideCompound,
+    tripCount: r._count,
+    revenue: Number(r._sum.price ?? 0),
+  }));
+};
+
 export const getAccountCounts = async () => {
   const [totalCaptains, totalClients] = await Promise.all([
     prisma.captain.count(),
