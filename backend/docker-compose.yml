@@ -20,10 +20,19 @@ services:
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
       ADMIN_API_KEY: ${ADMIN_KEY}
       FIREBASE_SERVICE_ACCOUNT: ${FIREBASE_SERVICE_ACCOUNT}
+    volumes:
+      # Without this, every uploaded captain document (national ID,
+      # license, vehicle license, profile photo) lives only in the
+      # container's writable layer and is silently wiped on the next
+      # `--force-recreate`/rebuild (see config/upload.ts - it writes to
+      # ./uploads, i.e. /app/uploads here). This volume makes uploads
+      # survive deploys.
+      - uploads:/app/uploads
     depends_on:
       - postgres
 
 volumes:
   pgdata:
+  uploads:
 
 
