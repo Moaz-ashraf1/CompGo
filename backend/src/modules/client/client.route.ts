@@ -9,6 +9,7 @@ import {
 } from "./client.validation.js";
 import tripRouter from "../trip/trip.route.js";
 import * as pricingController from "../pricing/pricing.controller.js";
+import * as appSettingsController from "../app-settings/app-settings.controller.js";
 import * as deviceTokenController from "../device-token/device-token.controller.js";
 import {
   registerDeviceTokenSchema,
@@ -24,6 +25,12 @@ router.get(
   authenticate,
   authorize("CLIENT"),
   pricingController.getPublicPricing,
+);
+router.get(
+  "/app-settings",
+  authenticate,
+  authorize("CLIENT"),
+  appSettingsController.getPublicSettings,
 );
 router.get("/me", authenticate, authorize("CLIENT"), clientController.getMe);
 router.patch(

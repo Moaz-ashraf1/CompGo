@@ -11,6 +11,7 @@ import authRouter from "./auth/auth.route.js";
 import { authenticate, authorize } from "../../middlewares/auth.js";
 import tripRouter from "./trip/trip.route.js";
 import * as pricingController from "../pricing/pricing.controller.js";
+import * as appSettingsController from "../app-settings/app-settings.controller.js";
 import * as deviceTokenController from "../device-token/device-token.controller.js";
 import {
   registerDeviceTokenSchema,
@@ -69,6 +70,12 @@ router.get(
   authenticate,
   authorize("CAPTAIN"),
   pricingController.getPublicPricing,
+);
+router.get(
+  "/app-settings",
+  authenticate,
+  authorize("CAPTAIN"),
+  appSettingsController.getPublicSettings,
 );
 router.patch(
   "/me/device-token",
