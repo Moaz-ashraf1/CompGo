@@ -304,6 +304,15 @@ export const rateTrip = async (
     rating: data.rating,
     ratingComment: data.comment ?? null,
   });
+
+  if (trip.captainId) {
+    void notifyAccount(trip.captainId, "CAPTAIN", {
+      title: "تقييم جديد",
+      body: `قيّمك العميل بـ ${data.rating} ${data.rating === 1 ? "نجمة" : "نجوم"}`,
+      data: { tripId, type: "trip:rated" },
+    });
+  }
+
   return attachCaptainInfoOne(rated);
 };
 
@@ -586,6 +595,12 @@ export const dispatchDueScheduledTrips = async () => {
   }
 };
 
+/// Distance thresholds (km) for the one-time "captain is close"/"captain
+/// arrived" push notifications below - tuned for a residential compound's
+/// scale (short trips), not a citywide ride-hailing app.
+const NEAR_PICKUP_THRESHOLD_KM = 0.5;
+const ARRIVED_THRESHOLD_KM = 0.1;
+
 export const notifyCaptainLocationUpdate = async (
   captainId: string,
   lat: number,
@@ -599,4 +614,35 @@ export const notifyCaptainLocationUpdate = async (
     lng,
     updatedAt: new Date().toISOString(),
   });
+
+  // Only meaningful while the captain is still heading to pick the client
+  // up - once IN_PROGRESS they're already together, and there's nothing
+  // to alert the client about anymore.
+  if (trip.status !== TripStatus.ACCEPTED) return;
+
+  const distanceKm = haversineDistanceKm(
+    { lat, lng },
+    { lat: Number(trip.pickupLat), lng: Number(trip.pickupLng) },
+  );
+
+  if (distanceKm <= ARRIVED_THRESHOLD_KM && !trip.arrivedNotifiedAt) {
+    await tripRepo.updateTripStatus(trip.id, { arrivedNotifiedAt: new Date() });
+    void notifyAccount(trip.clientId, "CLIENT", {
+      title: "الكابتن وصل",
+      body: "الكابتن وصل مكان الاستلام وواصلك دلوقتي",
+      data: { tripId: trip.id, type: "trip:captain_arrived" },
+    });
+  } else if (
+    distanceKm <= NEAR_PICKUP_THRESHOLD_KM &&
+    !trip.nearPickupNotifiedAt
+  ) {
+    await tripRepo.updateTripStatus(trip.id, {
+      nearPickupNotifiedAt: new Date(),
+    });
+    void notifyAccount(trip.clientId, "CLIENT", {
+      title: "الكابتن قرّب يوصل",
+      body: "الكابتن قريب منك جدًا، استعد للنزول",
+      data: { tripId: trip.id, type: "trip:captain_near" },
+    });
+  }
 };

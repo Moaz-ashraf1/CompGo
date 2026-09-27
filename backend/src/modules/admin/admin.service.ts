@@ -4,6 +4,7 @@ import * as captainRepo from "../captain/captain.repository.js";
 import * as tripRepo from "../trip/trip.repository.js";
 import * as tripService from "../trip/trip.service.js";
 import * as messageRepo from "../message/message.repository.js";
+import { notifyAccount } from "../notification/notification.service.js";
 import { hashPassword } from "../../utils/hash.js";
 import {
   CaptainNotFoundError,
@@ -153,6 +154,12 @@ export const adjustCaptainBalance = async (
     captainRepo.incrementAmountDue(captainId, data.amount),
     captainRepo.createWalletTransaction(captainId, data.amount, data.reason),
   ]);
+
+  void notifyAccount(captainId, "CAPTAIN", {
+    title: data.amount >= 0 ? "تم خصم مبلغ من رصيدك" : "تم إضافة مبلغ لرصيدك",
+    body: data.reason,
+    data: { type: "wallet:adjustment" },
+  });
 
   return updated;
 };

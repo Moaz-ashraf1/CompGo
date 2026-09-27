@@ -236,54 +236,60 @@ model PricingConfig {
 }
 
 model Trip {
-  id                String        @id @default(uuid())
-  type              TripType
-  status            TripStatus    @default(REQUESTED)
-  clientId          String
-  captainId         String?
-  pickupLat         Decimal       @db.Decimal(10, 7)
-  pickupLng         Decimal       @db.Decimal(10, 7)
-  pickupLabel       String
-  dropoffLat        Decimal?      @db.Decimal(10, 7)
-  dropoffLng        Decimal?      @db.Decimal(10, 7)
-  dropoffLabel      String?
-  isInsideCompound  Boolean
-  distanceKm        Decimal?      @db.Decimal(10, 2)
-  price             Decimal       @db.Decimal(10, 2)
-  cancelReason      String?
-  paymentMethod     PaymentMethod @default(CASH)
+  id                   String        @id @default(uuid())
+  type                 TripType
+  status               TripStatus    @default(REQUESTED)
+  clientId             String
+  captainId            String?
+  pickupLat            Decimal       @db.Decimal(10, 7)
+  pickupLng            Decimal       @db.Decimal(10, 7)
+  pickupLabel          String
+  dropoffLat           Decimal?      @db.Decimal(10, 7)
+  dropoffLng           Decimal?      @db.Decimal(10, 7)
+  dropoffLabel         String?
+  isInsideCompound     Boolean
+  distanceKm           Decimal?      @db.Decimal(10, 2)
+  price                Decimal       @db.Decimal(10, 2)
+  cancelReason         String?
+  paymentMethod        PaymentMethod @default(CASH)
   // Only a FEMALE client may set this (enforced in trip.service.ts ->
   // requestTrip) - restricts which captains can see/accept the trip to
   // FEMALE captains only (see getAvailableTrips/acceptTrip).
-  femaleCaptainOnly Boolean       @default(false)
+  femaleCaptainOnly    Boolean       @default(false)
   // Advance-booking details, currently only meaningful for AIRPORT trips.
   // A trip is still created and matched immediately on request either
   // way - there's no scheduler yet that holds a trip until scheduledAt.
-  scheduledAt       DateTime?
+  scheduledAt          DateTime?
   // Set once the trip is actually shown to captains (see trip.service.ts
   // -> dispatchTripToCaptains) - immediately for a normal/unscheduled
   // trip, or later by the scheduled-trip dispatcher job once `scheduledAt`
   // is within its lead window. Null means captains have never seen it yet.
-  dispatchedAt      DateTime?
-  passengers        Int?
-  luggageCount      Int?
-  flightNumber      String?
+  dispatchedAt         DateTime?
+  passengers           Int?
+  luggageCount         Int?
+  flightNumber         String?
   // How many separate pickup places an ORDER trip combined into one
   // request (see trip.service.ts -> calculatePrice) - null/1 for a
   // single-place order, and for every other trip type.
-  placesCount       Int?
+  placesCount          Int?
   // Set once by the client after a COMPLETED trip (see trip.service.ts
   // -> rateTrip). 1-5, enforced in trip.validation.ts, not at the DB
   // level.
-  rating            Int?
-  ratingComment     String?
-  requestedAt       DateTime      @default(now())
-  acceptedAt        DateTime?
-  startedAt         DateTime?
-  completedAt       DateTime?
-  cancelledAt       DateTime?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  rating               Int?
+  ratingComment        String?
+  // Set once each the first time a captain location update crosses the
+  // "near"/"arrived" distance threshold to the pickup point (see
+  // trip.service.ts -> notifyCaptainLocationUpdate) - so those push
+  // notifications fire exactly once per trip instead of on every tick.
+  nearPickupNotifiedAt DateTime?
+  arrivedNotifiedAt    DateTime?
+  requestedAt          DateTime      @default(now())
+  acceptedAt           DateTime?
+  startedAt            DateTime?
+  completedAt          DateTime?
+  cancelledAt          DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
 
   @@index([clientId])
   @@index([captainId])
