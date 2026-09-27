@@ -13,6 +13,7 @@ export const getPublicSettings = async () => {
   const settings = await appSettingsRepo.findAppSettings();
   return {
     supportWhatsappNumber: settings?.supportWhatsappNumber ?? null,
+    supportEmail: settings?.supportEmail ?? null,
   };
 };
 

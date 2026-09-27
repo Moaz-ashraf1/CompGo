@@ -192,14 +192,17 @@ model CompoundBoundary {
 }
 
 /// General app-wide settings, singleton row (same pattern as
-/// PricingConfig/CompoundBoundary above) - currently just the support
-/// WhatsApp number shown as a "تواصل معنا" link in both apps (see
-/// app-settings.service.ts).
+/// PricingConfig/CompoundBoundary above) - currently the support WhatsApp
+/// number and email shown on the "تواصل معنا" page in both apps (see
+/// app-settings.service.ts). Each is independently nullable - the admin
+/// can configure either, both, or neither, and any unset channel just
+/// doesn't render in the apps.
 model AppSettings {
   id                    String   @id @default(uuid())
   // Digits only, international format, no leading +/00/0 (e.g.
   // "201001234567") - that's what a wa.me/<number> deep link needs.
   supportWhatsappNumber String?
+  supportEmail          String?
   updatedAt             DateTime @updatedAt
 }
 
