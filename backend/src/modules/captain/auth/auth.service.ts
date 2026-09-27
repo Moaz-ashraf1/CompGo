@@ -7,6 +7,7 @@ import * as authService from "../../auth/auth.service.js";
 import { comparePassword, hashPassword } from "../../../utils/hash.js";
 import {
   CaptainAlreadyExistsError,
+  CaptainPendingApprovalError,
   InvalidCredentialsError,
   VehicleNumberAlreadyInUseError,
 } from "../../../exceptions/captain.exceptions.js";
@@ -65,8 +66,13 @@ export const loginCaptain = async (
     captain.passwordHash,
   );
 
-  if (!isPasswordValid || captain.status === "BLOCKED")
-    throw new InvalidCredentialsError();
+  if (!isPasswordValid) throw new InvalidCredentialsError();
+  // Only reveal the pending-approval state once the password has already
+  // matched - same reasoning as BLOCKED below, this stays behind proof of
+  // ownership of the account instead of leaking status from just a phone
+  // number guess.
+  if (captain.status === "PENDING") throw new CaptainPendingApprovalError();
+  if (captain.status === "BLOCKED") throw new InvalidCredentialsError();
 
   const { accessToken, refreshToken } = await authService.issueTokenPair({
     accountId: captain.id,

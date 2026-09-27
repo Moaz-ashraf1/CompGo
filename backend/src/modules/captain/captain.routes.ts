@@ -112,6 +112,14 @@ router.get(
   authorize("ADMIN"),
   captainController.getAllCaptains,
 );
+// Registered before the ADMIN "/:id" catch-all below - "pending" would
+// otherwise match it as an :id (see the route-shadowing note above).
+router.get(
+  "/pending",
+  authenticate,
+  authorize("ADMIN"),
+  captainController.getPendingCaptains,
+);
 router.get(
   "/:id",
   authenticate,

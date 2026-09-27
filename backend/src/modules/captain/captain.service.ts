@@ -52,6 +52,10 @@ export const getAllCaptains = async () => {
   return captainRepo.findAllCaptains();
 };
 
+export const getPendingCaptains = async () => {
+  return captainRepo.findCaptainsByStatus(CaptainStatus.PENDING);
+};
+
 export const getCaptainById = async (id: string) => {
   const captain = await captainRepo.findCaptainById(id);
 

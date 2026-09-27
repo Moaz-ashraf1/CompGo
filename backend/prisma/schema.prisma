@@ -26,6 +26,7 @@ enum ClientStatus {
 enum CaptainStatus {
   ACTIVE
   BLOCKED
+  PENDING
 }
 
 enum TripType{
@@ -88,7 +89,10 @@ model Captain {
   vehicleType     VehicleType
   vehicleModel    String
   amountDue       Decimal       @default(0) @db.Decimal(10, 2)
-  status          CaptainStatus @default(ACTIVE)
+  // New signups start PENDING and need an admin to approve them (see
+  // captain.service.ts -> getPendingCaptains, and login's status check)
+  // before they can log in and start taking trips.
+  status          CaptainStatus @default(PENDING)
   isAvailable     Boolean       @default(false)
   lastLat         Float?
   lastLng         Float?

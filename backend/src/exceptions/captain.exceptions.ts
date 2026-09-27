@@ -19,6 +19,12 @@ export class InvalidCredentialsError extends AppException {
   }
 }
 
+export class CaptainPendingApprovalError extends AppException {
+  constructor(message = "Your account is still pending admin approval") {
+    super(message, StatusCodes.FORBIDDEN);
+  }
+}
+
 export class PhoneAlreadyInUseError extends AppException {
   constructor(message = "This phone number is already in use") {
     super(message, StatusCodes.CONFLICT);

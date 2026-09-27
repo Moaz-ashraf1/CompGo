@@ -73,6 +73,18 @@ export const findAllCaptains = async () => {
   });
 };
 
+/// Newly-registered captains awaiting admin review (see
+/// captain.service.ts -> getPendingCaptains) - reuses `captainSafeSelect`
+/// since the dashboard's review page needs the same document images the
+/// captain detail page already shows.
+export const findCaptainsByStatus = async (status: CaptainStatus) => {
+  return prisma.captain.findMany({
+    where: { status },
+    select: captainSafeSelect,
+    orderBy: { createdAt: "desc" },
+  });
+};
+
 export const findCaptainById = async (id: string) => {
   return prisma.captain.findUnique({
     where: {

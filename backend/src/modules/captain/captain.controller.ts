@@ -22,6 +22,16 @@ export const getAllCaptains = asyncHandler(
   },
 );
 
+export const getPendingCaptains = asyncHandler(
+  async (_req: Request, res: Response) => {
+    const captains = await captainService.getPendingCaptains();
+
+    res.status(StatusCodes.OK).json({
+      data: captains,
+    });
+  },
+);
+
 export const updateMe = asyncHandler(async (req: Request, res: Response) => {
   const captain = await captainService.updateMe(req.user!.id, req.body);
 
