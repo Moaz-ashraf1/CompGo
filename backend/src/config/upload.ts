@@ -35,4 +35,5 @@ export const captainDocumentsUpload = multer({
   { name: "profilePhoto", maxCount: 1 },
   { name: "nationalIdImage", maxCount: 1 },
   { name: "licenseImage", maxCount: 1 },
+  { name: "vehicleLicenseImage", maxCount: 1 },
 ]);

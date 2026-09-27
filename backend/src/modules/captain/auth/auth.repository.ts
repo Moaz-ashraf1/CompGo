@@ -12,6 +12,7 @@ export const createCaptain = async (data: {
   profilePhoto: string;
   nationalIdImage: string;
   licenseImage: string;
+  vehicleLicenseImage: string;
   vehicleNumber: string;
   vehicleType: "MOTORCYCLE" | "CAR" | "BICYCLE";
   vehicleModel: string;

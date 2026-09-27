@@ -29,7 +29,7 @@ enum CaptainStatus {
   PENDING
 }
 
-enum TripType{
+enum TripType {
   RIDE
   ORDER
   AIRPORT
@@ -63,7 +63,6 @@ model Admin {
   updatedAt    DateTime @updatedAt
 }
 
-
 model Client {
   id           String       @id @default(uuid())
   name         String
@@ -77,28 +76,34 @@ model Client {
 }
 
 model Captain {
-  id              String        @id @default(uuid())
-  name            String
-  phone           String        @unique
-  gender          Gender
-  passwordHash    String
-  profilePhoto    String?
-  nationalIdImage String
-  licenseImage    String
-  vehicleNumber   String        @unique
-  vehicleType     VehicleType
-  vehicleModel    String
-  amountDue       Decimal       @default(0) @db.Decimal(10, 2)
+  id                  String        @id @default(uuid())
+  name                String
+  phone               String        @unique
+  gender              Gender
+  passwordHash        String
+  profilePhoto        String?
+  nationalIdImage     String
+  licenseImage        String
+  // The vehicle's own registration/license photo, distinct from
+  // `licenseImage` (the captain's personal driving license). Nullable
+  // since captains registered before this field existed have none -
+  // required at the API layer for every new registration (see
+  // captain.validation.ts -> registerCaptainSchema).
+  vehicleLicenseImage String?
+  vehicleNumber       String        @unique
+  vehicleType         VehicleType
+  vehicleModel        String
+  amountDue           Decimal       @default(0) @db.Decimal(10, 2)
   // New signups start PENDING and need an admin to approve them (see
   // captain.service.ts -> getPendingCaptains, and login's status check)
   // before they can log in and start taking trips.
-  status          CaptainStatus @default(PENDING)
-  isAvailable     Boolean       @default(false)
-  lastLat         Float?
-  lastLng         Float?
-  lastLocationAt  DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  status              CaptainStatus @default(PENDING)
+  isAvailable         Boolean       @default(false)
+  lastLat             Float?
+  lastLng             Float?
+  lastLocationAt      DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 }
 
 /// A manual balance adjustment an admin makes on a captain's `amountDue`
@@ -199,12 +204,12 @@ enum OrderPlacesPricingMode {
 }
 
 model PricingConfig {
-  id                       String   @id @default(uuid())
-  rideInsideCompoundPrice  Decimal  @db.Decimal(10, 2)
-  rideOutsidePricePerKm    Decimal  @db.Decimal(10, 2)
-  orderInsideCompoundPrice Decimal  @db.Decimal(10, 2)
-  commissionPercentage     Decimal  @default(15) @db.Decimal(5, 2)
-  airportPrice             Decimal  @db.Decimal(10, 2)
+  id                         String                     @id @default(uuid())
+  rideInsideCompoundPrice    Decimal                    @db.Decimal(10, 2)
+  rideOutsidePricePerKm      Decimal                    @db.Decimal(10, 2)
+  orderInsideCompoundPrice   Decimal                    @db.Decimal(10, 2)
+  commissionPercentage       Decimal                    @default(15) @db.Decimal(5, 2)
+  airportPrice               Decimal                    @db.Decimal(10, 2)
   // How a RIDE trip starting outside the compound gets priced (see
   // trip.service.ts -> calculatePrice):
   //   PER_KM (default, original behaviour) - full distance * rideOutsidePricePerKm
@@ -224,64 +229,63 @@ model PricingConfig {
   //            is a JSON array of {minPlaces, price} set by the admin -
   //            the tier with the highest minPlaces <= placesCount wins
   //            (e.g. [{minPlaces:2,price:80},{minPlaces:3,price:120}])
-  orderPlacesMode      OrderPlacesPricingMode @default(FLAT)
-  orderExtraPlacePrice Decimal?               @db.Decimal(10, 2)
-  orderPlaceTiers      Json?
-  updatedAt                DateTime @updatedAt
+  orderPlacesMode            OrderPlacesPricingMode     @default(FLAT)
+  orderExtraPlacePrice       Decimal?                   @db.Decimal(10, 2)
+  orderPlaceTiers            Json?
+  updatedAt                  DateTime                   @updatedAt
 }
 
+model Trip {
+  id                String        @id @default(uuid())
+  type              TripType
+  status            TripStatus    @default(REQUESTED)
+  clientId          String
+  captainId         String?
+  pickupLat         Decimal       @db.Decimal(10, 7)
+  pickupLng         Decimal       @db.Decimal(10, 7)
+  pickupLabel       String
+  dropoffLat        Decimal?      @db.Decimal(10, 7)
+  dropoffLng        Decimal?      @db.Decimal(10, 7)
+  dropoffLabel      String?
+  isInsideCompound  Boolean
+  distanceKm        Decimal?      @db.Decimal(10, 2)
+  price             Decimal       @db.Decimal(10, 2)
+  cancelReason      String?
+  paymentMethod     PaymentMethod @default(CASH)
+  // Only a FEMALE client may set this (enforced in trip.service.ts ->
+  // requestTrip) - restricts which captains can see/accept the trip to
+  // FEMALE captains only (see getAvailableTrips/acceptTrip).
+  femaleCaptainOnly Boolean       @default(false)
+  // Advance-booking details, currently only meaningful for AIRPORT trips.
+  // A trip is still created and matched immediately on request either
+  // way - there's no scheduler yet that holds a trip until scheduledAt.
+  scheduledAt       DateTime?
+  // Set once the trip is actually shown to captains (see trip.service.ts
+  // -> dispatchTripToCaptains) - immediately for a normal/unscheduled
+  // trip, or later by the scheduled-trip dispatcher job once `scheduledAt`
+  // is within its lead window. Null means captains have never seen it yet.
+  dispatchedAt      DateTime?
+  passengers        Int?
+  luggageCount      Int?
+  flightNumber      String?
+  // How many separate pickup places an ORDER trip combined into one
+  // request (see trip.service.ts -> calculatePrice) - null/1 for a
+  // single-place order, and for every other trip type.
+  placesCount       Int?
+  // Set once by the client after a COMPLETED trip (see trip.service.ts
+  // -> rateTrip). 1-5, enforced in trip.validation.ts, not at the DB
+  // level.
+  rating            Int?
+  ratingComment     String?
+  requestedAt       DateTime      @default(now())
+  acceptedAt        DateTime?
+  startedAt         DateTime?
+  completedAt       DateTime?
+  cancelledAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
- model Trip {
-   id               String     @id @default(uuid())
-   type             TripType
-   status           TripStatus @default(REQUESTED)
-   clientId         String
-   captainId        String?
-   pickupLat        Decimal    @db.Decimal(10, 7)
-   pickupLng        Decimal    @db.Decimal(10, 7)
-   pickupLabel      String
-   dropoffLat       Decimal?   @db.Decimal(10, 7)
-   dropoffLng       Decimal?   @db.Decimal(10, 7)
-   dropoffLabel     String?
-   isInsideCompound Boolean
-   distanceKm       Decimal?   @db.Decimal(10, 2)
-   price            Decimal    @db.Decimal(10, 2)
-   cancelReason     String?
-   paymentMethod    PaymentMethod @default(CASH)
-   // Only a FEMALE client may set this (enforced in trip.service.ts ->
-   // requestTrip) - restricts which captains can see/accept the trip to
-   // FEMALE captains only (see getAvailableTrips/acceptTrip).
-   femaleCaptainOnly Boolean @default(false)
-   // Advance-booking details, currently only meaningful for AIRPORT trips.
-   // A trip is still created and matched immediately on request either
-   // way - there's no scheduler yet that holds a trip until scheduledAt.
-   scheduledAt      DateTime?
-   // Set once the trip is actually shown to captains (see trip.service.ts
-   // -> dispatchTripToCaptains) - immediately for a normal/unscheduled
-   // trip, or later by the scheduled-trip dispatcher job once `scheduledAt`
-   // is within its lead window. Null means captains have never seen it yet.
-   dispatchedAt     DateTime?
-   passengers       Int?
-   luggageCount     Int?
-   flightNumber     String?
-   // How many separate pickup places an ORDER trip combined into one
-   // request (see trip.service.ts -> calculatePrice) - null/1 for a
-   // single-place order, and for every other trip type.
-   placesCount      Int?
-   // Set once by the client after a COMPLETED trip (see trip.service.ts
-   // -> rateTrip). 1-5, enforced in trip.validation.ts, not at the DB
-   // level.
-   rating           Int?
-   ratingComment    String?
-   requestedAt      DateTime   @default(now())
-   acceptedAt       DateTime?
-   startedAt        DateTime?
-   completedAt      DateTime?
-   cancelledAt      DateTime?
-   createdAt        DateTime   @default(now())
-   updatedAt        DateTime   @updatedAt
-
-   @@index([clientId])
-   @@index([captainId])
-   @@index([status])
- }
+  @@index([clientId])
+  @@index([captainId])
+  @@index([status])
+}

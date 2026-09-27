@@ -13,12 +13,13 @@ export const attachCaptainDocuments = (
   const profilePhotoFile = files?.profilePhoto?.[0];
   const nationalIdFile = files?.nationalIdImage?.[0];
   const licenseFile = files?.licenseImage?.[0];
+  const vehicleLicenseFile = files?.vehicleLicenseImage?.[0];
 
-  if (!profilePhotoFile || !nationalIdFile || !licenseFile) {
+  if (!profilePhotoFile || !nationalIdFile || !licenseFile || !vehicleLicenseFile) {
     res.status(StatusCodes.BAD_REQUEST).json({
       status: "fail",
       message:
-        "profilePhoto, nationalIdImage and licenseImage files are required",
+        "profilePhoto, nationalIdImage, licenseImage and vehicleLicenseImage files are required",
     });
     return;
   }
@@ -26,6 +27,7 @@ export const attachCaptainDocuments = (
   req.body.profilePhoto = `/uploads/captains/${profilePhotoFile.filename}`;
   req.body.nationalIdImage = `/uploads/captains/${nationalIdFile.filename}`;
   req.body.licenseImage = `/uploads/captains/${licenseFile.filename}`;
+  req.body.vehicleLicenseImage = `/uploads/captains/${vehicleLicenseFile.filename}`;
 
   next();
 };
