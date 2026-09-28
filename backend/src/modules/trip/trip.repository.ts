@@ -203,6 +203,19 @@ export const findActiveTripForCaptain = async (captainId: string) => {
   });
 };
 
+/// Used to block a client from requesting a second trip while one they
+/// already made is still unresolved (see trip.service.ts -> requestTrip).
+export const findActiveTripForClient = async (clientId: string) => {
+  return prisma.trip.findFirst({
+    where: {
+      clientId,
+      status: {
+        in: [TripStatus.REQUESTED, TripStatus.ACCEPTED, TripStatus.IN_PROGRESS],
+      },
+    },
+  });
+};
+
 export const getCaptainRatingStats = async (captainId: string) => {
   const agg = await prisma.trip.aggregate({
     where: { captainId, rating: { not: null } },

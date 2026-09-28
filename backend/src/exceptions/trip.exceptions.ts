@@ -74,3 +74,12 @@ export class TripPlaceNotFoundError extends AppException {
     super("Trip place not found", StatusCodes.NOT_FOUND);
   }
 }
+
+export class ClientHasActiveTripError extends AppException {
+  constructor() {
+    super(
+      "You already have an active trip - finish or cancel it before requesting a new one",
+      StatusCodes.CONFLICT,
+    );
+  }
+}

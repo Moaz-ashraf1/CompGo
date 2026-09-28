@@ -33,6 +33,7 @@ import {
   FemaleCaptainOnlyRestrictedError,
   TripRestrictedToFemaleCaptainsError,
   TripPlaceNotFoundError,
+  ClientHasActiveTripError,
 } from "../../exceptions/trip.exceptions.js";
 
 // Trip rows only ever carry raw `clientId`/`captainId` strings - these
@@ -206,6 +207,9 @@ const dispatchTripToCaptains = async (trip: {
   }
 };
 export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
+  const existingActiveTrip = await tripRepo.findActiveTripForClient(clientId);
+  if (existingActiveTrip) throw new ClientHasActiveTripError();
+
   if (data.femaleCaptainOnly) {
     const client = await clientRepo.findClientById(clientId);
     if (client?.gender !== "FEMALE") {
