@@ -205,12 +205,20 @@ model CompoundBoundary {
 /// can configure either, both, or neither, and any unset channel just
 /// doesn't render in the apps.
 model AppSettings {
-  id                    String   @id @default(uuid())
+  id                               String   @id @default(uuid())
   // Digits only, international format, no leading +/00/0 (e.g.
   // "201001234567") - that's what a wa.me/<number> deep link needs.
-  supportWhatsappNumber String?
-  supportEmail          String?
-  updatedAt             DateTime @updatedAt
+  supportWhatsappNumber            String?
+  supportEmail                     String?
+  // Global cancellation-penalty policy (see trip.service.ts ->
+  // cancelCaptainTrip): a captain's first `captainCancellationFreeLimit`
+  // cancellations (all-time, counted from Trip.cancelledBy) are free -
+  // every one after that automatically charges
+  // `captainCancellationPenaltyAmount` to their wallet. Either being null
+  // disables the penalty entirely.
+  captainCancellationFreeLimit     Int?
+  captainCancellationPenaltyAmount Decimal? @db.Decimal(10, 2)
+  updatedAt                        DateTime @updatedAt
 }
 
 /// An admin-defined performance tier a captain can qualify for over a

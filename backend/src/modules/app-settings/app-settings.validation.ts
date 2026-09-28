@@ -10,6 +10,10 @@ export const updateAppSettingsSchema = z.object({
     .nullable(),
   // `null` clears it (hides the email row in both apps).
   supportEmail: z.string().trim().email("Invalid email address").nullable(),
+  // Either being null disables the cancellation-penalty policy entirely
+  // (see trip.service.ts -> cancelCaptainTrip).
+  captainCancellationFreeLimit: z.number().int().min(0).nullable(),
+  captainCancellationPenaltyAmount: z.number().min(0).nullable(),
 });
 
 export type UpdateAppSettingsDto = z.infer<typeof updateAppSettingsSchema>;

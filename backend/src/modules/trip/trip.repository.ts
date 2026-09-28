@@ -5,6 +5,16 @@ export const createTrip = async (data: Prisma.TripUncheckedCreateInput) => {
   return await prisma.trip.create({ data });
 };
 
+/// All-time count of trips this captain personally cancelled (see
+/// Trip.cancelledBy) - the cancellation-penalty policy in
+/// trip.service.ts -> cancelCaptainTrip compares this against the
+/// admin-configured free limit.
+export const countCaptainCancellations = async (captainId: string) => {
+  return prisma.trip.count({
+    where: { captainId, status: TripStatus.CANCELLED, cancelledBy: "CAPTAIN" },
+  });
+};
+
 export const findTripsByClient = async (clientId: string) => {
   return prisma.trip.findMany({
     where: { clientId },

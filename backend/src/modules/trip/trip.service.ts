@@ -2,6 +2,7 @@ import * as tripRepo from "./trip.repository.js";
 import * as boundaryRepo from "../compound-boundary/compound-boundary.repository.js";
 import * as pricingRepo from "../pricing/pricing.repository.js";
 import * as captainRepo from "../captain/captain.repository.js";
+import * as appSettingsRepo from "../app-settings/app-settings.repository.js";
 import * as clientRepo from "../client/client.repo.js";
 import {
   emitToClient,
@@ -464,6 +465,39 @@ export const completeTrip = async (captainId: string, tripId: string) => {
   return attachClientInfoOne(updatedTrip, { withPhone: true });
 };
 
+/// Charges the captain an automatic penalty once their all-time
+/// captain-initiated cancellation count passes the admin-configured free
+/// limit (see AppSettings.captainCancellationFreeLimit/
+/// captainCancellationPenaltyAmount) - every cancellation beyond the
+/// limit is charged, not just the one that first crosses it. A no-op
+/// when either setting is unset (feature disabled) - best-effort, never
+/// blocks the cancellation itself from succeeding.
+const applyCancellationPenaltyIfDue = async (captainId: string) => {
+  const settings = await appSettingsRepo.findAppSettings();
+  const freeLimit = settings?.captainCancellationFreeLimit;
+  const penaltyAmount = settings?.captainCancellationPenaltyAmount;
+  if (freeLimit === null || freeLimit === undefined) return;
+  if (penaltyAmount === null || penaltyAmount === undefined) return;
+
+  const cancellationCount = await tripRepo.countCaptainCancellations(captainId);
+  if (cancellationCount <= freeLimit) return;
+
+  const amount = Number(penaltyAmount);
+  await Promise.all([
+    captainRepo.incrementAmountDue(captainId, amount),
+    captainRepo.createWalletTransaction(
+      captainId,
+      amount,
+      `غرامة إلغاء رحلة (تجاوز الحد المسموح: ${freeLimit})`,
+    ),
+  ]);
+  void notifyAccount(captainId, "CAPTAIN", {
+    title: "تم خصم غرامة إلغاء",
+    body: `تجاوزت الحد المسموح لإلغاء الرحلات (${freeLimit}) - اتخصم ${amount} ج.م من رصيدك`,
+    data: { type: "wallet:cancellation_penalty" },
+  });
+};
+
 export const cancelCaptainTrip = async (
   captainId: string,
   tripId: string,
@@ -489,6 +523,7 @@ export const cancelCaptainTrip = async (
     body: "الكابتن ألغى الرحلة، حاول تاني",
     data: { tripId, type: "trip:updated" },
   });
+  void applyCancellationPenaltyIfDue(captainId);
   return attachClientInfoOne(cancelled, { withPhone: true });
 };
 
