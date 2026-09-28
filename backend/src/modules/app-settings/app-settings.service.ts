@@ -14,6 +14,8 @@ export const getPublicSettings = async () => {
   return {
     supportWhatsappNumber: settings?.supportWhatsappNumber ?? null,
     supportEmail: settings?.supportEmail ?? null,
+    instapayNumber: settings?.instapayNumber ?? null,
+    vodafoneCashNumber: settings?.vodafoneCashNumber ?? null,
   };
 };
 

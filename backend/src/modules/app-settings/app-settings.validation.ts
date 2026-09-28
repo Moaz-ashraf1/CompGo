@@ -14,6 +14,10 @@ export const updateAppSettingsSchema = z.object({
   // (see trip.service.ts -> cancelCaptainTrip).
   captainCancellationFreeLimit: z.number().int().min(0).nullable(),
   captainCancellationPenaltyAmount: z.number().min(0).nullable(),
+  // Where a captain sends their settlement payment - either being null
+  // hides that option in the captain app's payment-method picker.
+  instapayNumber: z.string().trim().min(1).nullable(),
+  vodafoneCashNumber: z.string().trim().min(1).nullable(),
 });
 
 export type UpdateAppSettingsDto = z.infer<typeof updateAppSettingsSchema>;

@@ -19,6 +19,10 @@ import {
   removeDeviceTokenSchema,
 } from "../device-token/device-token.validation.js";
 import * as notificationController from "../notification/notification.controller.js";
+import * as settlementController from "../settlement/settlement.controller.js";
+import { createSettlementSubmissionSchema } from "../settlement/settlement.validation.js";
+import { settlementScreenshotUpload } from "../../config/upload.js";
+import { attachSettlementScreenshot } from "../../middlewares/attachSettlementScreenshot.js";
 
 const router = Router();
 
@@ -112,6 +116,23 @@ router.patch(
   authenticate,
   authorize("CAPTAIN"),
   notificationController.markRead,
+);
+// Registered before the ADMIN "/:id" catch-all below - see the
+// route-shadowing note above.
+router.post(
+  "/settlements",
+  authenticate,
+  authorize("CAPTAIN"),
+  settlementScreenshotUpload,
+  attachSettlementScreenshot,
+  validate(createSettlementSubmissionSchema),
+  settlementController.submitSettlement,
+);
+router.get(
+  "/settlements/pending",
+  authenticate,
+  authorize("CAPTAIN"),
+  settlementController.getMyPendingSubmission,
 );
 
 router.get(

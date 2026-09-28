@@ -218,7 +218,43 @@ model AppSettings {
   // disables the penalty entirely.
   captainCancellationFreeLimit     Int?
   captainCancellationPenaltyAmount Decimal? @db.Decimal(10, 2)
+  // Where a captain sends their settlement payment (see
+  // settlement.service.ts -> submitSettlement) - shown to them once they
+  // pick a SettlementPaymentMethod. Either being null hides that option.
+  instapayNumber                   String?
+  vodafoneCashNumber               String?
   updatedAt                        DateTime @updatedAt
+}
+
+enum SettlementPaymentMethod {
+  INSTAPAY
+  VODAFONE_CASH
+}
+
+enum SettlementStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// A captain's claim that they paid their `amountDue` outside the app
+/// (InstaPay/Vodafone Cash transfer) - `screenshotUrl` is the proof an
+/// admin reviews before approving. Approving resets the captain's
+/// amountDue to 0 (see settlement.service.ts -> approveSubmission); a
+/// captain can only ever have one PENDING submission at a time.
+model SettlementSubmission {
+  id              String                  @id @default(uuid())
+  captainId       String
+  amount          Decimal                 @db.Decimal(10, 2)
+  paymentMethod   SettlementPaymentMethod
+  screenshotUrl   String
+  status          SettlementStatus        @default(PENDING)
+  rejectionReason String?
+  submittedAt     DateTime                @default(now())
+  reviewedAt      DateTime?
+
+  @@index([captainId])
+  @@index([status])
 }
 
 /// An admin-defined performance tier a captain can qualify for over a

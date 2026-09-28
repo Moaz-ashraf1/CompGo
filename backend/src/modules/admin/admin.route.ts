@@ -3,6 +3,7 @@ import * as adminController from "./admin.controller.js";
 import * as reportsController from "../reports/reports.controller.js";
 import * as notificationController from "../notification/notification.controller.js";
 import * as bonusTierController from "../bonus-tier/bonus-tier.controller.js";
+import * as settlementController from "../settlement/settlement.controller.js";
 import {
   updateCaptainPhoneSchema,
   resetPasswordSchema,
@@ -13,6 +14,7 @@ import {
   createBonusTierSchema,
   updateBonusTierSchema,
 } from "../bonus-tier/bonus-tier.validation.js";
+import { rejectSettlementSubmissionSchema } from "../settlement/settlement.validation.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import { authenticate, authorize } from "../../middlewares/auth.js";
 import authRouter from "./auth/auth.route.js";
@@ -42,6 +44,17 @@ router.patch(
   bonusTierController.updateBonusTier,
 );
 router.delete("/bonus-tiers/:id", bonusTierController.deleteBonusTier);
+
+router.get("/settlements", settlementController.getAllSubmissions);
+router.patch(
+  "/settlements/:id/approve",
+  settlementController.approveSubmission,
+);
+router.patch(
+  "/settlements/:id/reject",
+  validate(rejectSettlementSubmissionSchema),
+  settlementController.rejectSubmission,
+);
 
 router.get("/notifications", notificationController.getAllForAdmin);
 
