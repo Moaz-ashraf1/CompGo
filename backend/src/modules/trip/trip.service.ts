@@ -33,6 +33,7 @@ import {
   NoPricingConfigError,
   FemaleCaptainOnlyRestrictedError,
   TripRestrictedToFemaleCaptainsError,
+  TripPlaceNotFoundError,
 } from "../../exceptions/trip.exceptions.js";
 
 // Trip rows only ever carry raw `clientId`/`captainId` strings - these
@@ -255,6 +256,17 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
     flightNumber: data.flightNumber ?? null,
     femaleCaptainOnly: data.femaleCaptainOnly ?? false,
     placesCount: data.placesCount ?? null,
+    ...(data.places
+      ? {
+          places: {
+            create: data.places.map((p, index) => ({
+              name: p.name,
+              details: p.details ?? null,
+              order: index,
+            })),
+          },
+        }
+      : {}),
   });
 
   const isDueNow =
@@ -431,6 +443,40 @@ export const startTrip = async (captainId: string, tripId: string) => {
     data: { tripId, type: "trip:updated" },
   });
   return attachClientInfoOne(started, { withPhone: true });
+};
+
+/// Captain checks/unchecks one item of a multi-place ORDER trip as
+/// collected (see TripPlace in schema.prisma) - the client sees this
+/// update live over the socket plus gets a push notification, same
+/// pairing as every other trip-state change in this file.
+export const togglePlaceCollected = async (
+  captainId: string,
+  tripId: string,
+  placeId: string,
+) => {
+  const trip = await getCaptainTripOrThrow(captainId, tripId);
+
+  const place = trip.places.find((p) => p.id === placeId);
+  if (!place) throw new TripPlaceNotFoundError();
+
+  const updatedPlace = await tripRepo.setTripPlaceCollected(
+    placeId,
+    !place.collected,
+  );
+
+  const updatedTrip = await tripRepo.findTripById(tripId);
+  const forClient = await attachCaptainInfoOne(updatedTrip!);
+  emitToClient(trip.clientId, "trip:place_collected", forClient);
+
+  if (updatedPlace.collected) {
+    void notifyAccount(trip.clientId, "CLIENT", {
+      title: "تم تجهيز جزء من طلبك",
+      body: `تم إحضار "${updatedPlace.name}"`,
+      data: { tripId, type: "trip:place_collected" },
+    });
+  }
+
+  return attachClientInfoOne(updatedTrip!, { withPhone: true });
 };
 
 export const completeTrip = async (captainId: string, tripId: string) => {

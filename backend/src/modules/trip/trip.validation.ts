@@ -25,6 +25,22 @@ export const createTripSchema = z
     // request - drives the PER_PLACE pricing mode (see trip.service.ts ->
     // calculatePrice). Ignored for other trip types.
     placesCount: z.number().int().min(1).max(10).optional(),
+    // The individually-checkable places themselves (see TripPlace in
+    // schema.prisma) - optional for backward compatibility with an app
+    // build that still only sends the flattened `pickupLabel` and
+    // `placesCount`. When present, its length should match `placesCount`
+    // but that isn't enforced here - trip.service.ts just uses this
+    // array's length as the source of truth once given.
+    places: z
+      .array(
+        z.object({
+          name: z.string().min(1).max(100),
+          details: z.string().max(200).optional(),
+        }),
+      )
+      .min(1)
+      .max(10)
+      .optional(),
   })
   .refine(
     (data) =>

@@ -1,8 +1,30 @@
 import { prisma } from "../../config/prisma.js";
 import { Prisma, TripStatus, TripType } from "../../generated/prisma/client.js";
 
+/// Every trip-fetching query below includes this so a multi-place ORDER
+/// trip's checklist (see TripPlace in schema.prisma) is always available
+/// wherever a trip is read - the row count is small (<=10) so this isn't
+/// worth special-casing per screen.
+const withPlaces = {
+  places: { orderBy: { order: "asc" as const } },
+} satisfies Prisma.TripInclude;
+
 export const createTrip = async (data: Prisma.TripUncheckedCreateInput) => {
-  return await prisma.trip.create({ data });
+  return await prisma.trip.create({ data, include: withPlaces });
+};
+
+export const findTripPlaceById = async (placeId: string) => {
+  return prisma.tripPlace.findUnique({ where: { id: placeId } });
+};
+
+export const setTripPlaceCollected = async (
+  placeId: string,
+  collected: boolean,
+) => {
+  return prisma.tripPlace.update({
+    where: { id: placeId },
+    data: { collected, collectedAt: collected ? new Date() : null },
+  });
 };
 
 /// All-time count of trips this captain personally cancelled (see
@@ -19,6 +41,7 @@ export const findTripsByClient = async (clientId: string) => {
   return prisma.trip.findMany({
     where: { clientId },
     orderBy: { createdAt: "desc" },
+    include: withPlaces,
   });
 };
 
@@ -33,6 +56,7 @@ export const findTripsByCaptain = async (
       ...(filters.status ? { status: filters.status } : {}),
     },
     orderBy: { createdAt: "desc" },
+    include: withPlaces,
   });
 };
 
@@ -46,6 +70,7 @@ export const findAvailableTrips = async (visibleBefore: Date) => {
       OR: [{ scheduledAt: null }, { scheduledAt: { lte: visibleBefore } }],
     },
     orderBy: { requestedAt: "asc" },
+    include: withPlaces,
   });
 };
 
@@ -96,6 +121,7 @@ export const findAllTrips = async (
         : {}),
     },
     orderBy: { createdAt: "desc" },
+    include: withPlaces,
   });
 };
 
@@ -112,7 +138,7 @@ export const updateTripStatus = async (
   id: string,
   data: Prisma.TripUncheckedUpdateInput,
 ) => {
-  return prisma.trip.update({ where: { id }, data });
+  return prisma.trip.update({ where: { id }, data, include: withPlaces });
 };
 
 export const getCaptainTripStats = async (captainId: string) => {
@@ -158,11 +184,12 @@ export const findRecentCompletedTrips = async (
     where: { captainId, status: TripStatus.COMPLETED },
     orderBy: { completedAt: "desc" },
     take: limit,
+    include: withPlaces,
   });
 };
 
 export const findTripById = async (tripId: string) => {
-  return prisma.trip.findUnique({ where: { id: tripId } });
+  return prisma.trip.findUnique({ where: { id: tripId }, include: withPlaces });
 };
 
 /// Used to route a captain's live location update to the right client -

@@ -77,3 +77,9 @@ export class TripRestrictedToFemaleCaptainsError extends AppException {
     );
   }
 }
+
+export class TripPlaceNotFoundError extends AppException {
+  constructor() {
+    super("Trip place not found", StatusCodes.NOT_FOUND);
+  }
+}

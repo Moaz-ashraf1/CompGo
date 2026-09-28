@@ -20,6 +20,10 @@ router.patch(
   validate(cancelTripSchema),
   tripController.cancelTrip,
 );
+router.patch(
+  "/:id/places/:placeId/toggle",
+  tripController.togglePlaceCollected,
+);
 router.get("/:id/messages", messageController.getMessages);
 router.post(
   "/:id/messages",

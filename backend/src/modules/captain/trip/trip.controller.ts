@@ -41,6 +41,18 @@ export const cancelTrip = asyncHandler(async (req: Request, res: Response) => {
   res.status(StatusCodes.OK).json({ status: "success", data: { trip } });
 });
 
+export const togglePlaceCollected = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id, placeId } = req.params;
+    const trip = await tripService.togglePlaceCollected(
+      req.user!.id,
+      id as string,
+      placeId as string,
+    );
+    res.status(StatusCodes.OK).json({ status: "success", data: { trip } });
+  },
+);
+
 export const getMyTrips = asyncHandler(async (req: Request, res: Response) => {
   const { type, status } = req.query as {
     type?: TripType;

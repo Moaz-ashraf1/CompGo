@@ -346,7 +346,31 @@ model Trip {
   createdAt            DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
 
+  // Individually-trackable pickup places for a multi-place ORDER trip
+  // (see trip.service.ts -> requestTrip/togglePlaceCollected) - empty for
+  // every other trip type, and for an ORDER trip requested before this
+  // existed (those only have the flattened `pickupLabel` text).
+  places TripPlace[]
+
   @@index([clientId])
   @@index([captainId])
   @@index([status])
+}
+
+/// One pickup item within a multi-place ORDER trip, checked off by the
+/// captain as they collect it (see trip.service.ts ->
+/// togglePlaceCollected) - the client sees this list update live via
+/// socket + gets a push notification on each check.
+model TripPlace {
+  id          String    @id @default(uuid())
+  tripId      String
+  trip        Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  name        String
+  details     String?
+  order       Int
+  collected   Boolean   @default(false)
+  collectedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([tripId])
 }
