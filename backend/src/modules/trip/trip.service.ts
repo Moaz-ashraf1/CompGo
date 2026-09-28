@@ -616,6 +616,7 @@ export const getCaptainWallet = async (captainId: string) => {
     todayEarnings: stats.todayEarnings,
     todayTripsCount: stats.todayTripsCount,
     monthlyEarnings: stats.monthlyEarnings,
+    commissionPercentage,
     recentTransactions,
   };
 };
