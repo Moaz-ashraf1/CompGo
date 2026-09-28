@@ -28,7 +28,6 @@ import {
   InvalidTripStatusError,
   TripAlreadyTakenError,
   MissingDropoffError,
-  OrderOutsideCompoundError,
   NoCompoundBoundaryError,
   NoPricingConfigError,
   FemaleCaptainOnlyRestrictedError,
@@ -118,13 +117,16 @@ const calculatePrice = async (params: {
   }
 
   if (params.type === TripType.ORDER) {
-    if (!params.isInsideCompound) throw new OrderOutsideCompoundError();
+    const baseOrderPrice = params.isInsideCompound
+      ? Number(pricing.orderInsideCompoundPrice)
+      : Number(
+          pricing.orderOutsideCompoundPrice ?? pricing.orderInsideCompoundPrice,
+        );
 
     if (pricing.orderPlacesMode === "PER_PLACE") {
       const extraPlaces = Math.max(0, (params.placesCount ?? 1) - 1);
       return (
-        Number(pricing.orderInsideCompoundPrice) +
-        extraPlaces * Number(pricing.orderExtraPlacePrice ?? 0)
+        baseOrderPrice + extraPlaces * Number(pricing.orderExtraPlacePrice ?? 0)
       );
     }
     if (pricing.orderPlacesMode === "TIERED") {
@@ -136,11 +138,9 @@ const calculatePrice = async (params: {
       const matched = tiers
         .filter((t) => t.minPlaces <= places)
         .sort((a, b) => b.minPlaces - a.minPlaces)[0];
-      return matched
-        ? Number(matched.price)
-        : Number(pricing.orderInsideCompoundPrice);
+      return matched ? Number(matched.price) : baseOrderPrice;
     }
-    return Number(pricing.orderInsideCompoundPrice);
+    return baseOrderPrice;
   }
 
   if (params.isInsideCompound) return Number(pricing.rideInsideCompoundPrice);

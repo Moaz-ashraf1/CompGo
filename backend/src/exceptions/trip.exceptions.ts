@@ -39,15 +39,6 @@ export class MissingDropoffError extends AppException {
   }
 }
 
-export class OrderOutsideCompoundError extends AppException {
-  constructor() {
-    super(
-      "Orders are only available inside the compound",
-      StatusCodes.BAD_REQUEST,
-    );
-  }
-}
-
 export class NoCompoundBoundaryError extends AppException {
   constructor() {
     super("Compound boundary is not configured yet", StatusCodes.BAD_REQUEST);

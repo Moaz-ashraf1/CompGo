@@ -16,6 +16,7 @@ export const getPublicPricing = async () => {
     rideInsideCompoundPrice: pricing.rideInsideCompoundPrice,
     rideOutsidePricePerKm: pricing.rideOutsidePricePerKm,
     orderInsideCompoundPrice: pricing.orderInsideCompoundPrice,
+    orderOutsideCompoundPrice: pricing.orderOutsideCompoundPrice,
     airportPrice: pricing.airportPrice,
     outsideCompoundMode: pricing.outsideCompoundMode,
     outsideCompoundFlatPrice: pricing.outsideCompoundFlatPrice,

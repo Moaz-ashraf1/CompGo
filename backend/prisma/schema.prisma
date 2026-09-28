@@ -257,6 +257,12 @@ model PricingConfig {
   rideInsideCompoundPrice    Decimal                    @db.Decimal(10, 2)
   rideOutsidePricePerKm      Decimal                    @db.Decimal(10, 2)
   orderInsideCompoundPrice   Decimal                    @db.Decimal(10, 2)
+  // Price for an ORDER trip whose pickup point is outside the compound -
+  // null keeps the old behaviour of just reusing orderInsideCompoundPrice
+  // (see trip.service.ts -> calculatePrice). Orders used to be rejected
+  // entirely outside the compound (OrderOutsideCompoundError); that
+  // restriction was removed once this field was added.
+  orderOutsideCompoundPrice  Decimal?                   @db.Decimal(10, 2)
   commissionPercentage       Decimal                    @default(15) @db.Decimal(5, 2)
   airportPrice               Decimal                    @db.Decimal(10, 2)
   // How a RIDE trip starting outside the compound gets priced (see

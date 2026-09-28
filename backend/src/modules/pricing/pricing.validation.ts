@@ -5,6 +5,10 @@ export const updatePricingSchema = z
     rideInsideCompoundPrice: z.number().positive(),
     rideOutsidePricePerKm: z.number().positive(),
     orderInsideCompoundPrice: z.number().positive(),
+    // Price for an ORDER trip whose pickup is outside the compound - falls
+    // back to orderInsideCompoundPrice when unset (see
+    // trip.service.ts -> calculatePrice).
+    orderOutsideCompoundPrice: z.number().positive().optional(),
     airportPrice: z.number().positive(),
     commissionPercentage: z.number().min(0).max(100),
     // How a RIDE trip starting outside the compound gets priced (see
