@@ -77,3 +77,13 @@ export const updateCaptainLocationSchema = z.object({
 export type UpdateCaptainLocationDTO = z.infer<
   typeof updateCaptainLocationSchema
 >;
+
+export const updateSettlementCycleSchema = z.object({
+  // `null` clears the cycle (stops tracking a next-due date for this
+  // captain).
+  settlementCycleDays: z.number().int().min(1).max(365).nullable(),
+});
+
+export type UpdateSettlementCycleDTO = z.infer<
+  typeof updateSettlementCycleSchema
+>;

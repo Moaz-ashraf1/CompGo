@@ -20,6 +20,8 @@ export const captainSafeSelect = {
   amountDue: true,
   status: true,
   isAvailable: true,
+  settlementCycleDays: true,
+  lastSettledAt: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -67,6 +69,8 @@ export const findAllCaptains = async () => {
       vehicleModel: true,
       amountDue: true,
       status: true,
+      settlementCycleDays: true,
+      lastSettledAt: true,
       createdAt: true,
     },
     orderBy: {
@@ -143,7 +147,22 @@ export const resetCaptainAmountDue = async (id: string) => {
     },
     data: {
       amountDue: 0,
+      // Resetting dues *is* the settlement/collection event - see
+      // Captain.settlementCycleDays for how this feeds the next-due
+      // calculation in captain.service.ts -> getSettlementInfo.
+      lastSettledAt: new Date(),
     },
+    select: captainSafeSelect,
+  });
+};
+
+export const updateSettlementCycle = async (
+  id: string,
+  settlementCycleDays: number | null,
+) => {
+  return prisma.captain.update({
+    where: { id },
+    data: { settlementCycleDays },
     select: captainSafeSelect,
   });
 };

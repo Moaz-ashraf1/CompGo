@@ -5,6 +5,7 @@ import {
   updateAvailabilitySchema,
   changeCaptainPasswordSchema,
   updateCaptainLocationSchema,
+  updateSettlementCycleSchema,
 } from "./captain.validation.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import authRouter from "./auth/auth.route.js";
@@ -150,6 +151,13 @@ router.patch(
   authenticate,
   authorize("ADMIN"),
   captainController.resetAmountDue,
+);
+router.patch(
+  "/:id/settlement-cycle",
+  authenticate,
+  authorize("ADMIN"),
+  validate(updateSettlementCycleSchema),
+  captainController.updateSettlementCycle,
 );
 
 export default router;

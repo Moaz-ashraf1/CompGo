@@ -48,8 +48,39 @@ export const updateMe = async (
   return captainRepo.updateCaptain(captainId, data);
 };
 
+/// Derives the next date a captain's dues should be collected, and
+/// whether that date has already passed - from `settlementCycleDays`
+/// (admin-set) and `lastSettledAt` (set automatically whenever an admin
+/// resets their amountDue - see resetAmountDue below). Falls back to
+/// `createdAt` when they've never been settled yet, so a new captain's
+/// first cycle starts counting from signup. Returns nulls when no cycle
+/// is configured for this captain.
+export const withSettlementInfo = <
+  T extends {
+    settlementCycleDays: number | null;
+    lastSettledAt: Date | null;
+    createdAt: Date;
+  },
+>(
+  captain: T,
+) => {
+  if (captain.settlementCycleDays === null) {
+    return { ...captain, nextSettlementDueAt: null, isSettlementOverdue: false };
+  }
+  const base = captain.lastSettledAt ?? captain.createdAt;
+  const nextSettlementDueAt = new Date(
+    base.getTime() + captain.settlementCycleDays * 86400000,
+  );
+  return {
+    ...captain,
+    nextSettlementDueAt,
+    isSettlementOverdue: nextSettlementDueAt.getTime() <= Date.now(),
+  };
+};
+
 export const getAllCaptains = async () => {
-  return captainRepo.findAllCaptains();
+  const captains = await captainRepo.findAllCaptains();
+  return captains.map(withSettlementInfo);
 };
 
 export const getPendingCaptains = async () => {
@@ -63,7 +94,24 @@ export const getCaptainById = async (id: string) => {
     throw new captainExceptions.CaptainNotFoundError();
   }
 
-  return captain;
+  return withSettlementInfo(captain);
+};
+
+export const updateSettlementCycle = async (
+  id: string,
+  settlementCycleDays: number | null,
+) => {
+  const captain = await captainRepo.findCaptainById(id);
+
+  if (!captain) {
+    throw new captainExceptions.CaptainNotFoundError();
+  }
+
+  const updated = await captainRepo.updateSettlementCycle(
+    id,
+    settlementCycleDays,
+  );
+  return withSettlementInfo(updated);
 };
 
 export const blockCaptain = async (id: string) => {
@@ -74,10 +122,12 @@ export const blockCaptain = async (id: string) => {
   }
 
   if (captain.status === CaptainStatus.BLOCKED) {
-    return captain;
+    return withSettlementInfo(captain);
   }
 
-  return captainRepo.updateCaptainStatus(id, CaptainStatus.BLOCKED);
+  return withSettlementInfo(
+    await captainRepo.updateCaptainStatus(id, CaptainStatus.BLOCKED),
+  );
 };
 
 export const unblockCaptain = async (id: string) => {
@@ -88,10 +138,12 @@ export const unblockCaptain = async (id: string) => {
   }
 
   if (captain.status === CaptainStatus.ACTIVE) {
-    return captain;
+    return withSettlementInfo(captain);
   }
 
-  return captainRepo.updateCaptainStatus(id, CaptainStatus.ACTIVE);
+  return withSettlementInfo(
+    await captainRepo.updateCaptainStatus(id, CaptainStatus.ACTIVE),
+  );
 };
 
 export const resetAmountDue = async (id: string) => {
@@ -101,7 +153,8 @@ export const resetAmountDue = async (id: string) => {
     throw new captainExceptions.CaptainNotFoundError();
   }
 
-  return captainRepo.resetCaptainAmountDue(id);
+  const updated = await captainRepo.resetCaptainAmountDue(id);
+  return withSettlementInfo(updated);
 };
 
 export const changePassword = async (

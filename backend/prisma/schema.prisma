@@ -94,6 +94,13 @@ model Captain {
   vehicleType         VehicleType
   vehicleModel        String
   amountDue           Decimal       @default(0) @db.Decimal(10, 2)
+  // Admin-configurable per captain - how often (in days) this captain's
+  // dues should be collected/settled in person. Null means no cycle is
+  // tracked for them. Paired with `lastSettledAt` (set whenever an admin
+  // resets their amountDue - see captain.service.ts -> resetAmountDue) to
+  // compute a next-due date and flag overdue captains in the dashboard.
+  settlementCycleDays Int?
+  lastSettledAt       DateTime?
   // New signups start PENDING and need an admin to approve them (see
   // captain.service.ts -> getPendingCaptains, and login's status check)
   // before they can log in and start taking trips.

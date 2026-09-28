@@ -92,6 +92,22 @@ export const resetAmountDue = asyncHandler(
   },
 );
 
+export const updateSettlementCycle = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const captain = await captainService.updateSettlementCycle(
+      id as string,
+      req.body.settlementCycleDays,
+    );
+
+    res.status(StatusCodes.OK).json({
+      message: "Settlement cycle updated successfully",
+      data: captain,
+    });
+  },
+);
+
 export const getWallet = asyncHandler(async (req: Request, res: Response) => {
   const wallet = await captainService.getWallet(req.user!.id);
   res.status(StatusCodes.OK).json({ status: "success", data: wallet });

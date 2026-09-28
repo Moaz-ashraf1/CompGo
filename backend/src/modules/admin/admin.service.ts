@@ -1,6 +1,7 @@
 import * as adminRepo from "./admin.repository.js";
 import * as authRepo from "../auth/auth.repository.js";
 import * as captainRepo from "../captain/captain.repository.js";
+import { withSettlementInfo } from "../captain/captain.service.js";
 import * as tripRepo from "../trip/trip.repository.js";
 import * as tripService from "../trip/trip.service.js";
 import * as messageRepo from "../message/message.repository.js";
@@ -85,7 +86,7 @@ export const getCaptainDetail = async (captainId: string) => {
     ]);
 
   return {
-    captain,
+    captain: withSettlementInfo(captain),
     tripStats,
     ratingStats,
     recentTrips: trips.slice(0, 20),
