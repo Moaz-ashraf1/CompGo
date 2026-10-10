@@ -22,6 +22,7 @@ import * as notificationController from "../notification/notification.controller
 import * as settlementController from "../settlement/settlement.controller.js";
 import { createSettlementSubmissionSchema } from "../settlement/settlement.validation.js";
 import { settlementScreenshotUpload } from "../../config/upload.js";
+import { requirePermission as perm } from "../../middlewares/requirePermission.js";
 import { attachSettlementScreenshot } from "../../middlewares/attachSettlementScreenshot.js";
 
 const router = Router();
@@ -139,6 +140,7 @@ router.get(
   "/",
   authenticate,
   authorize("ADMIN"),
+  perm("captains", "VIEW"),
   captainController.getAllCaptains,
 );
 // Registered before the ADMIN "/:id" catch-all below - "pending" would
@@ -147,36 +149,42 @@ router.get(
   "/pending",
   authenticate,
   authorize("ADMIN"),
+  perm("captains", "VIEW"),
   captainController.getPendingCaptains,
 );
 router.get(
   "/:id",
   authenticate,
   authorize("ADMIN"),
+  perm("captains", "VIEW"),
   captainController.getCaptainById,
 );
 router.patch(
   "/:id/block",
   authenticate,
   authorize("ADMIN"),
+  perm("captains", "EDIT"),
   captainController.blockCaptain,
 );
 router.patch(
   "/:id/unblock",
   authenticate,
   authorize("ADMIN"),
+  perm("captains", "EDIT"),
   captainController.unblockCaptain,
 );
 router.patch(
   "/:id/reset-amount-due",
   authenticate,
   authorize("ADMIN"),
+  perm("wallet", "EDIT"),
   captainController.resetAmountDue,
 );
 router.patch(
   "/:id/settlement-cycle",
   authenticate,
   authorize("ADMIN"),
+  perm("captains", "EDIT"),
   validate(updateSettlementCycleSchema),
   captainController.updateSettlementCycle,
 );

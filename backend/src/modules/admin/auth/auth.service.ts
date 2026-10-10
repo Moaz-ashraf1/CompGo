@@ -27,6 +27,8 @@ export const loginAdmin = async (
   return {
     adminId: admin.id,
     username: admin.username,
+    isSuper: admin.isSuper,
+    permissions: admin.permissions,
     accessToken,
     refreshToken,
   };

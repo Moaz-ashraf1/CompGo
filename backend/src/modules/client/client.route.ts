@@ -7,6 +7,7 @@ import {
   updateClientProfileSchema,
   changeClientPasswordSchema,
 } from "./client.validation.js";
+import { requirePermission as perm } from "../../middlewares/requirePermission.js";
 import tripRouter from "../trip/trip.route.js";
 import * as pricingController from "../pricing/pricing.controller.js";
 import * as appSettingsController from "../app-settings/app-settings.controller.js";
@@ -83,6 +84,7 @@ router.get(
   "/",
   authenticate,
   authorize("ADMIN"),
+  perm("clients", "VIEW"),
   clientController.getAllClients,
 );
 // Registered after every literal CLIENT-scoped route above (/me,
@@ -93,18 +95,21 @@ router.get(
   "/:id",
   authenticate,
   authorize("ADMIN"),
+  perm("clients", "VIEW"),
   clientController.getClientDetail,
 );
 router.patch(
   "/:id/block",
   authenticate,
   authorize("ADMIN"),
+  perm("clients", "EDIT"),
   clientController.blockClient,
 );
 router.patch(
   "/:id/unblock",
   authenticate,
   authorize("ADMIN"),
+  perm("clients", "EDIT"),
   clientController.unblockClient,
 );
 export default router;

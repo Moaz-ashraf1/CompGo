@@ -18,6 +18,15 @@ import { rejectSettlementSubmissionSchema } from "../settlement/settlement.valid
 import { validate } from "../../middlewares/validation.middleware.js";
 import { authenticate, authorize } from "../../middlewares/auth.js";
 import authRouter from "./auth/auth.route.js";
+import * as adminUsersController from "../admin-users/admin-users.controller.js";
+import {
+  createAdminUserSchema,
+  updateAdminUserSchema,
+} from "../admin-users/admin-users.validation.js";
+import {
+  requirePermission as perm,
+  requireSuperAdmin,
+} from "../../middlewares/requirePermission.js";
 
 const router = Router();
 
@@ -25,63 +34,125 @@ router.use("/auth", authRouter);
 
 router.use(authenticate, authorize("ADMIN"));
 
-router.get("/reports/overview", reportsController.getOverview);
+router.get("/me", adminUsersController.getMe);
+
+router.get("/admins", requireSuperAdmin, adminUsersController.getAll);
+router.post(
+  "/admins",
+  requireSuperAdmin,
+  validate(createAdminUserSchema),
+  adminUsersController.create,
+);
+router.patch(
+  "/admins/:id",
+  requireSuperAdmin,
+  validate(updateAdminUserSchema),
+  adminUsersController.update,
+);
+router.delete("/admins/:id", requireSuperAdmin, adminUsersController.remove);
+
+router.get(
+  "/reports/overview",
+  perm("reports", "VIEW"),
+  reportsController.getOverview,
+);
 router.get(
   "/reports/captain-commissions",
+  perm("reports", "VIEW"),
   reportsController.getCaptainCommissions,
 );
-router.get("/reports/captain-bonuses", reportsController.getCaptainBonuses);
+router.get(
+  "/reports/captain-bonuses",
+  perm("reports", "VIEW"),
+  reportsController.getCaptainBonuses,
+);
 
-router.get("/bonus-tiers", bonusTierController.getAllBonusTiers);
+router.get(
+  "/bonus-tiers",
+  perm("reports", "VIEW"),
+  bonusTierController.getAllBonusTiers,
+);
 router.post(
   "/bonus-tiers",
+  perm("reports", "EDIT"),
   validate(createBonusTierSchema),
   bonusTierController.createBonusTier,
 );
 router.patch(
   "/bonus-tiers/:id",
+  perm("reports", "EDIT"),
   validate(updateBonusTierSchema),
   bonusTierController.updateBonusTier,
 );
-router.delete("/bonus-tiers/:id", bonusTierController.deleteBonusTier);
+router.delete(
+  "/bonus-tiers/:id",
+  perm("reports", "EDIT"),
+  bonusTierController.deleteBonusTier,
+);
 
-router.get("/settlements", settlementController.getAllSubmissions);
+router.get(
+  "/settlements",
+  perm("settlements", "VIEW"),
+  settlementController.getAllSubmissions,
+);
 router.patch(
   "/settlements/:id/approve",
+  perm("settlements", "EDIT"),
   settlementController.approveSubmission,
 );
 router.patch(
   "/settlements/:id/reject",
+  perm("settlements", "EDIT"),
   validate(rejectSettlementSubmissionSchema),
   settlementController.rejectSubmission,
 );
 
-router.get("/notifications", notificationController.getAllForAdmin);
+router.get(
+  "/notifications",
+  perm("notifications", "VIEW"),
+  notificationController.getAllForAdmin,
+);
 
-router.get("/wallet-transactions", adminController.getWalletTransactions);
+router.get(
+  "/wallet-transactions",
+  perm("wallet", "VIEW"),
+  adminController.getWalletTransactions,
+);
 
-router.get("/trips", adminController.getTrips);
-router.get("/trips/:id", adminController.getTripDetail);
-router.get("/trips/:id/messages", adminController.getTripMessages);
+router.get("/trips", perm("trips", "VIEW"), adminController.getTrips);
+router.get("/trips/:id", perm("trips", "VIEW"), adminController.getTripDetail);
+router.get(
+  "/trips/:id/messages",
+  perm("trips", "VIEW"),
+  adminController.getTripMessages,
+);
 
-router.get("/captains/:id", adminController.getCaptainDetail);
+router.get(
+  "/captains/:id",
+  perm("captains", "VIEW"),
+  adminController.getCaptainDetail,
+);
 router.patch(
   "/captains/:id/phone",
+  perm("captains", "EDIT"),
   validate(updateCaptainPhoneSchema),
   adminController.updateCaptainPhone,
 );
 router.patch(
   "/captains/:id/password",
+  perm("captains", "EDIT"),
   validate(resetPasswordSchema),
   adminController.resetCaptainPassword,
 );
 router.patch(
   "/captains/:id/wallet-adjustment",
+  perm("wallet", "EDIT"),
   validate(adjustCaptainBalanceSchema),
   adminController.adjustCaptainBalance,
 );
 router.patch(
   "/clients/password",
+  perm("clients", "EDIT"),
   validate(resetClientPasswordByPhoneSchema),
   adminController.resetClientPassword,
 );

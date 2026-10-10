@@ -59,6 +59,12 @@ model Admin {
   id           String   @id @default(uuid())
   username     String   @unique
   passwordHash String
+  // A super admin can do everything and manage other admins (see
+  // admin-users module). Everyone else is limited to `permissions`: a map
+  // of dashboard section -> "VIEW" | "EDIT" (see utils/adminPermissions.ts).
+  // A missing section means no access at all.
+  isSuper      Boolean  @default(false)
+  permissions  Json     @default("{}")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
