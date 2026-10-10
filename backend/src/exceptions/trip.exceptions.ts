@@ -83,3 +83,12 @@ export class ClientHasActiveTripError extends AppException {
     );
   }
 }
+
+export class TripNotAvailableForCaptainError extends AppException {
+  constructor() {
+    super(
+      "This trip is not available for your account",
+      StatusCodes.FORBIDDEN,
+    );
+  }
+}

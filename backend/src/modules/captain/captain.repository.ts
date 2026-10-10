@@ -54,6 +54,13 @@ export const findFemaleCaptainIds = async () => {
   });
 };
 
+export const findMaleCaptainIds = async () => {
+  return prisma.captain.findMany({
+    where: { gender: "MALE" },
+    select: { id: true },
+  });
+};
+
 export const findAllCaptains = async () => {
   return prisma.captain.findMany({
     select: {

@@ -13,6 +13,7 @@ import {
   notifyAccount,
   notifyAllCaptains,
   notifyFemaleCaptains,
+  notifyMaleCaptains,
 } from "../notification/notification.service.js";
 import { isPointInsidePolygon, haversineDistanceKm } from "../../utils/geo.js";
 import { TripStatus, TripType } from "../../generated/prisma/client.js";
@@ -34,6 +35,7 @@ import {
   TripRestrictedToFemaleCaptainsError,
   TripPlaceNotFoundError,
   ClientHasActiveTripError,
+  TripNotAvailableForCaptainError,
 } from "../../exceptions/trip.exceptions.js";
 
 // Trip rows only ever carry raw `clientId`/`captainId` strings - these
@@ -178,6 +180,20 @@ const TYPE_LABELS: Record<TripType, string> = {
 /// crosses this window.
 export const LEAD_WINDOW_MS = 60 * 60 * 1000;
 
+/// Who may see/accept a trip, by gender: a female captain only works
+/// female clients' trips (never a male client's), a `femaleCaptainOnly`
+/// trip is for female captains only, and a female client's normal trip is
+/// open to everyone. Used by the available-trips list, accept, and the
+/// dispatch fan-out below so all three stay in agreement.
+const isTripVisibleToCaptain = (
+  trip: { femaleCaptainOnly: boolean },
+  clientGender: string | undefined,
+  captainGender: string | undefined,
+) => {
+  if (captainGender === "FEMALE") return clientGender === "FEMALE";
+  return !trip.femaleCaptainOnly;
+};
+
 /// The single place a trip actually becomes visible/pushed to captains -
 /// used both for an immediate (unscheduled, or already-due) trip at
 /// creation time, and later by the scheduled-trip dispatcher job.
@@ -188,22 +204,23 @@ const dispatchTripToCaptains = async (trip: {
   femaleCaptainOnly: boolean;
 }) => {
   const [withClient] = await attachClientInfo([trip], { withPhone: false });
+  const [client] = await clientRepo.findClientGendersByIds([trip.clientId]);
   const notifyPayload = {
     title: "طلب جديد",
     body: `طلب ${TYPE_LABELS[trip.type]} جديد بالقرب منك`,
     data: { tripId: trip.id, type: "trip:new" },
   };
   if (trip.femaleCaptainOnly) {
-    // Only female captains can ever see/accept this trip - broadcasting
-    // it (or notifying) to everyone would just be noise/confusion for
-    // captains who structurally can't take it (see getAvailableTrips
-    // and acceptTrip below).
     const femaleCaptains = await captainRepo.findFemaleCaptainIds();
     femaleCaptains.forEach((c) => emitToCaptain(c.id, "trip:new", withClient));
     void notifyFemaleCaptains(notifyPayload);
-  } else {
+  } else if (client?.gender === "FEMALE") {
     emitToCaptainsBroadcast("trip:new", withClient);
     void notifyAllCaptains(notifyPayload);
+  } else {
+    const maleCaptains = await captainRepo.findMaleCaptainIds();
+    maleCaptains.forEach((c) => emitToCaptain(c.id, "trip:new", withClient));
+    void notifyMaleCaptains(notifyPayload);
   }
 };
 export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
@@ -382,10 +399,12 @@ export const getAvailableTrips = async (captainId: string) => {
     tripRepo.findAvailableTrips(new Date(Date.now() + LEAD_WINDOW_MS)),
     captainRepo.findCaptainById(captainId),
   ]);
-  // A `femaleCaptainOnly` trip only shows up for FEMALE captains - see
-  // requestTrip's matching restriction on the client side.
-  const visible = trips.filter(
-    (t) => !t.femaleCaptainOnly || captain?.gender === "FEMALE",
+  const genders = await clientRepo.findClientGendersByIds([
+    ...new Set(trips.map((t) => t.clientId)),
+  ]);
+  const genderById = new Map(genders.map((c) => [c.id, c.gender]));
+  const visible = trips.filter((t) =>
+    isTripVisibleToCaptain(t, genderById.get(t.clientId), captain?.gender),
   );
   return attachClientInfo(visible, { withPhone: false });
 };
@@ -394,11 +413,13 @@ export const acceptTrip = async (captainId: string, tripId: string) => {
   const trip = await tripRepo.findTripById(tripId);
   if (!trip) throw new TripNotFoundError();
 
-  if (trip.femaleCaptainOnly) {
-    const captain = await captainRepo.findCaptainById(captainId);
-    if (captain?.gender !== "FEMALE") {
-      throw new TripRestrictedToFemaleCaptainsError();
-    }
+  const captain = await captainRepo.findCaptainById(captainId);
+  if (trip.femaleCaptainOnly && captain?.gender !== "FEMALE") {
+    throw new TripRestrictedToFemaleCaptainsError();
+  }
+  const [client] = await clientRepo.findClientGendersByIds([trip.clientId]);
+  if (!isTripVisibleToCaptain(trip, client?.gender, captain?.gender)) {
+    throw new TripNotAvailableForCaptainError();
   }
 
   const accepted = await tripRepo.acceptTrip(tripId, captainId);

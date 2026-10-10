@@ -84,6 +84,27 @@ export const notifyFemaleCaptains = async (payload: NotifyPayload) => {
   void pushToCaptains(ids, payload);
 };
 
+/// Mirror of `notifyFemaleCaptains` for trips that only MALE captains may
+/// see (a male client's trip - female captains only work female clients'
+/// trips, see trip.service.ts -> isTripVisibleToCaptain).
+export const notifyMaleCaptains = async (payload: NotifyPayload) => {
+  const captains = await captainRepo.findMaleCaptainIds();
+  const ids = captains.map((c) => c.id);
+  if (ids.length === 0) return;
+
+  await notificationRepo.createNotificationsForAccounts(ids, {
+    role: "CAPTAIN",
+    title: payload.title,
+    body: payload.body,
+    data: payload.data,
+  });
+
+  for (const id of ids) {
+    emitToCaptain(id, "notification:new", payload);
+  }
+  void pushToCaptains(ids, payload);
+};
+
 export const getNotifications = async (accountId: string) => {
   const [notifications, unreadCount] = await Promise.all([
     notificationRepo.findByAccountId(accountId),

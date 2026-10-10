@@ -40,6 +40,14 @@ export const findClientsPublicByIds = async (ids: string[]) => {
 /// Same, but name-only (no phone) - used for the list of *unclaimed*
 /// available trips, where every captain browsing the list would otherwise
 /// see every waiting client's phone number before anyone has accepted.
+export const findClientGendersByIds = async (ids: string[]) => {
+  if (ids.length === 0) return [];
+  return prisma.client.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, gender: true },
+  });
+};
+
 export const findClientsNameOnlyByIds = async (ids: string[]) => {
   if (ids.length === 0) return [];
   return prisma.client.findMany({
