@@ -156,7 +156,7 @@ export const getCaptainCommissionBreakdown = async (params: {
     prisma.trip.groupBy({
       by: ["captainId", "isInsideCompound"],
       where,
-      _sum: { price: true, companyShare: true },
+      _sum: { price: true, companyShare: true, discountAmount: true, creditUsed: true },
       _count: true,
     }),
     // Trips from before the company share was recorded per trip - their
@@ -179,7 +179,11 @@ export const getCaptainCommissionBreakdown = async (params: {
     isInsideCompound: r.isInsideCompound,
     tripCount: r._count,
     revenue: Number(r._sum.price ?? 0),
-    recordedCommission: Number(r._sum.companyShare ?? 0),
+    // Net of what the company paid out in promo discounts / bonus credit.
+    recordedCommission:
+      Number(r._sum.companyShare ?? 0) -
+      Number(r._sum.discountAmount ?? 0) -
+      Number(r._sum.creditUsed ?? 0),
     legacyRevenue: legacyByKey.get(`${r.captainId}:${r.isInsideCompound}`) ?? 0,
   }));
 };

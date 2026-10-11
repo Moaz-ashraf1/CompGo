@@ -15,6 +15,7 @@ import {
   notifyFemaleCaptains,
   notifyMaleCaptains,
 } from "../notification/notification.service.js";
+import * as benefits from "../offers/benefits.service.js";
 import { splitFare, tripCompanyShare, type CommissionCategory } from "../../utils/commission.js";
 import { isPointInsidePolygon, haversineDistanceKm } from "../../utils/geo.js";
 import { TripStatus, TripType } from "../../generated/prisma/client.js";
@@ -281,40 +282,56 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
     pricingConfig,
   );
 
-  const created = await tripRepo.createTrip({
-    type: data.type,
-    clientId,
-    pickupLat: data.pickupLat,
-    pickupLng: data.pickupLng,
-    pickupLabel: data.pickupLabel,
-    dropoffLat: data.dropoffLat ?? null,
-    dropoffLng: data.dropoffLng ?? null,
-    dropoffLabel:
-      data.dropoffLabel ?? (data.type === "AIRPORT" ? AIRPORT_LABEL : null),
-    isInsideCompound,
-    distanceKm,
-    price,
-    companyShare,
-    status: TripStatus.REQUESTED,
-    paymentMethod: data.paymentMethod ?? "CASH",
-    scheduledAt: data.scheduledAt ?? null,
-    passengers: data.passengers ?? null,
-    luggageCount: data.luggageCount ?? null,
-    flightNumber: data.flightNumber ?? null,
-    femaleCaptainOnly: data.femaleCaptainOnly ?? false,
-    placesCount: data.placesCount ?? null,
-    ...(data.places
-      ? {
-          places: {
-            create: data.places.map((p, index) => ({
-              name: p.name,
-              details: p.details ?? null,
-              order: index,
-            })),
-          },
-        }
-      : {}),
+  const plan = await benefits.planBenefits(clientId, price, {
+    promoCode: data.promoCode,
+    useCredit: data.useCredit,
   });
+  const releaseBenefits = await benefits.reserveBenefits(clientId, plan);
+
+  let created;
+  try {
+    created = await tripRepo.createTrip({
+      type: data.type,
+      clientId,
+      pickupLat: data.pickupLat,
+      pickupLng: data.pickupLng,
+      pickupLabel: data.pickupLabel,
+      dropoffLat: data.dropoffLat ?? null,
+      dropoffLng: data.dropoffLng ?? null,
+      dropoffLabel:
+        data.dropoffLabel ?? (data.type === "AIRPORT" ? AIRPORT_LABEL : null),
+      isInsideCompound,
+      distanceKm,
+      price,
+      companyShare,
+      discountAmount: plan.discountAmount > 0 ? plan.discountAmount : null,
+      creditUsed: plan.creditUsed > 0 ? plan.creditUsed : null,
+      promoCodeId: plan.promo?.id ?? null,
+      status: TripStatus.REQUESTED,
+      paymentMethod: data.paymentMethod ?? "CASH",
+      scheduledAt: data.scheduledAt ?? null,
+      passengers: data.passengers ?? null,
+      luggageCount: data.luggageCount ?? null,
+      flightNumber: data.flightNumber ?? null,
+      femaleCaptainOnly: data.femaleCaptainOnly ?? false,
+      placesCount: data.placesCount ?? null,
+      ...(data.places
+        ? {
+            places: {
+              create: data.places.map((p, index) => ({
+                name: p.name,
+                details: p.details ?? null,
+                order: index,
+              })),
+            },
+          }
+        : {}),
+    });
+  } catch (err) {
+    await releaseBenefits();
+    throw err;
+  }
+  await benefits.recordBenefits(clientId, created.id, plan);
 
   const isDueNow =
     !created.scheduledAt ||
@@ -398,6 +415,7 @@ export const cancelClientTrip = async (
     cancelReason: data.reason ?? null,
     cancelledBy: "CLIENT",
   });
+  void benefits.refundTripBenefits(cancelled);
 
   if (trip.status === TripStatus.REQUESTED) {
     // Wasn't assigned yet - every captain currently browsing it needs it
@@ -542,7 +560,13 @@ export const completeTrip = async (captainId: string, tripId: string) => {
   const pricing = await pricingRepo.findPricingConfig();
   if (!pricing) throw new NoPricingConfigError();
 
-  const commission = tripCompanyShare(trip, pricing.commissionPercentage);
+  // The company covers any promo discount / bonus credit the client used:
+  // the captain collected that much less cash, so it comes off what they
+  // owe (this can take their dues below zero - the company then owes them).
+  const commission =
+    tripCompanyShare(trip, pricing.commissionPercentage) -
+    Number(trip.discountAmount ?? 0) -
+    Number(trip.creditUsed ?? 0);
 
   const [updatedTrip] = await Promise.all([
     tripRepo.updateTripStatus(tripId, {
@@ -552,6 +576,7 @@ export const completeTrip = async (captainId: string, tripId: string) => {
     captainRepo.incrementAmountDue(captainId, commission),
   ]);
 
+  void benefits.awardCashback(updatedTrip);
   emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(updatedTrip));
   void notifyAccount(trip.clientId, "CLIENT", {
     title: "اكتملت رحلتك",
@@ -614,6 +639,7 @@ export const cancelCaptainTrip = async (
     cancelReason: data.reason ?? null,
     cancelledBy: "CAPTAIN",
   });
+  void benefits.refundTripBenefits(cancelled);
   emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(cancelled));
   void notifyAccount(trip.clientId, "CLIENT", {
     title: "تم إلغاء رحلتك",
@@ -668,7 +694,10 @@ export const getCaptainWallet = async (captainId: string) => {
     : 0;
 
   const tripTransactions = recentTrips.flatMap((trip) => {
-    const commission = tripCompanyShare(trip, commissionPercentage);
+    const commission =
+      tripCompanyShare(trip, commissionPercentage) -
+      Number(trip.discountAmount ?? 0) -
+      Number(trip.creditUsed ?? 0);
     return [
       {
         type: "TRIP_FARE" as const,

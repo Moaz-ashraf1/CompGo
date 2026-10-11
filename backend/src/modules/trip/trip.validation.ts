@@ -24,7 +24,11 @@ export const createTripSchema = z
     // How many separate pickup places an ORDER trip combines into one
     // request - drives the PER_PLACE pricing mode (see trip.service.ts ->
     // calculatePrice). Ignored for other trip types.
-    placesCount: z.number().int().min(1).max(10).optional(),
+    // A promo code to apply and whether to spend the client's bonus credit
+  // on this trip (see modules/offers/benefits.service.ts).
+  promoCode: z.string().trim().min(1).max(30).optional(),
+  useCredit: z.boolean().optional(),
+  placesCount: z.number().int().min(1).max(10).optional(),
     // The individually-checkable places themselves (see TripPlace in
     // schema.prisma) - optional for backward compatibility with an app
     // build that still only sends the flattened `pickupLabel` and

@@ -9,6 +9,7 @@ export const LEDGER_TYPES = [
   "ADMIN_ADJUSTMENT",
   "PENALTY",
   "COLLECTION",
+  "DISCOUNT_COVERED",
 ] as const;
 export type LedgerType = (typeof LEDGER_TYPES)[number];
 
@@ -42,7 +43,10 @@ export const getCaptainLedger = async (
   const commissionPercentage = pricing?.commissionPercentage ?? 0;
 
   const entries: LedgerEntry[] = [
-    ...trips.flatMap((trip): LedgerEntry[] => [
+    ...trips.flatMap((trip): LedgerEntry[] => {
+      const covered =
+        Number(trip.discountAmount ?? 0) + Number(trip.creditUsed ?? 0);
+      return [
       {
         type: "TRIP_FARE",
         tripId: trip.id,
@@ -57,7 +61,21 @@ export const getCaptainLedger = async (
         amount: -tripCompanyShare(trip, commissionPercentage),
         occurredAt: trip.completedAt!,
       },
-    ]),
+      // The client paid that much less in cash (promo/credit) - the company
+      // takes it off what the captain owes, so it's a credit to them.
+      ...(covered > 0
+        ? [
+            {
+              type: "DISCOUNT_COVERED" as const,
+              tripId: trip.id,
+              reason: "خصم تحمّلته الشركة",
+              amount: covered,
+              occurredAt: trip.completedAt!,
+            },
+          ]
+        : []),
+    ];
+    }),
     ...walletTransactions.map((w): LedgerEntry => ({
       type:
         w.kind === "PENALTY"
@@ -82,6 +100,7 @@ export const getCaptainLedger = async (
     penalties: round(sum("PENALTY")),
     adjustments: round(sum("ADMIN_ADJUSTMENT")),
     collected: round(Math.abs(sum("COLLECTION"))),
+    companyCovered: round(sum("DISCOUNT_COVERED")),
   };
 
   const filtered = params.type

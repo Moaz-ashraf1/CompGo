@@ -9,6 +9,7 @@ export const ADMIN_SECTIONS = [
   "pricing",
   "boundary",
   "settings",
+  "offers",
 ] as const;
 
 export type AdminSection = (typeof ADMIN_SECTIONS)[number];

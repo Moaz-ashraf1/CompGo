@@ -70,15 +70,19 @@ model Admin {
 }
 
 model Client {
-  id           String       @id @default(uuid())
-  name         String
-  phone        String       @unique
-  gender       Gender
-  passwordHash String
-  tripNum      Int          @default(0)
-  status       ClientStatus @default(ACTIVE)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id            String       @id @default(uuid())
+  name          String
+  phone         String       @unique
+  gender        Gender
+  passwordHash  String
+  tripNum       Int          @default(0)
+  // Bonus credit in EGP the client can spend on trips (see
+  // modules/offers/credit.service.ts). Kept in step with
+  // ClientCreditTransaction, which is the audit trail.
+  creditBalance Decimal      @default(0) @db.Decimal(10, 2)
+  status        ClientStatus @default(ACTIVE)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 }
 
 model Captain {
@@ -238,7 +242,70 @@ model AppSettings {
   // pick a SettlementPaymentMethod. Either being null hides that option.
   instapayNumber                   String?
   vodafoneCashNumber               String?
+  // Client bonus program (see modules/offers). cashbackPercent: share of
+  // what the client actually paid that comes back as credit after a
+  // completed trip. welcomeBonusAmount: credit given at signup.
+  // creditMaxUsagePercent: how much of a fare credit may cover (100 = all).
+  cashbackPercent                  Decimal? @db.Decimal(5, 2)
+  welcomeBonusAmount               Decimal? @db.Decimal(10, 2)
+  creditMaxUsagePercent            Int      @default(100)
   updatedAt                        DateTime @updatedAt
+}
+
+enum CreditTransactionKind {
+  GRANT
+  CASHBACK
+  WELCOME
+  REDEMPTION
+  REFUND
+}
+
+/// One movement of a client's bonus credit - positive adds, negative spends.
+model ClientCreditTransaction {
+  id        String                @id @default(uuid())
+  clientId  String
+  amount    Decimal               @db.Decimal(10, 2)
+  kind      CreditTransactionKind
+  reason    String
+  tripId    String?
+  createdAt DateTime              @default(now())
+
+  @@index([clientId, createdAt])
+}
+
+enum PromoDiscountType {
+  PERCENT
+  FIXED
+}
+
+/// An offer a client types in when requesting a trip. FIXED value is EGP,
+/// PERCENT is % of the fare (optionally capped by maxDiscount).
+model PromoCode {
+  id             String            @id @default(uuid())
+  code           String            @unique
+  description    String?
+  discountType   PromoDiscountType
+  value          Decimal           @db.Decimal(10, 2)
+  maxDiscount    Decimal?          @db.Decimal(10, 2)
+  minFare        Decimal?          @db.Decimal(10, 2)
+  validFrom      DateTime?
+  validTo        DateTime?
+  maxUses        Int?
+  usedCount      Int               @default(0)
+  perClientLimit Int               @default(1)
+  isActive       Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+}
+
+model PromoRedemption {
+  id          String   @id @default(uuid())
+  promoCodeId String
+  clientId    String
+  tripId      String
+  discount    Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+
+  @@index([promoCodeId, clientId])
 }
 
 enum SettlementPaymentMethod {
@@ -392,6 +459,14 @@ model Trip {
   // so later pricing changes never rewrite history. Null on trips created
   // before this existed (they fall back to price * commissionPercentage).
   companyShare         Decimal?      @db.Decimal(10, 2)
+  // Promo-code discount and bonus credit applied to this trip. `price` stays
+  // the full fare (captain earnings, commission and reports are based on
+  // it); the client only pays price - discountAmount - creditUsed in cash,
+  // and the company covers the difference (see trip.service.ts ->
+  // completeTrip).
+  discountAmount       Decimal?      @db.Decimal(10, 2)
+  creditUsed           Decimal?      @db.Decimal(10, 2)
+  promoCodeId          String?
   // Advance-booking details, currently only meaningful for AIRPORT trips.
   // A trip is still created and matched immediately on request either
   // way - there's no scheduler yet that holds a trip until scheduledAt.

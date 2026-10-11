@@ -4,6 +4,7 @@ import * as authService from "../../auth/auth.service.js";
 import { comparePassword, hashPassword } from "../../../utils/hash.js";
 import { ClientAlreadyExistsError } from "../../../exceptions/auth.exceptions.js";
 import { InvalidCredentialsError } from "../../../exceptions/client.exceptions.js";
+import { welcomeBonusFor } from "../../offers/credit.service.js";
 
 export const registerClient = async (data: RegisterClientDTO) => {
   const existingClient = await authRepo.findClientByPhone(data.phone);
@@ -20,6 +21,9 @@ export const registerClient = async (data: RegisterClientDTO) => {
     gender: data.gender,
     passwordHash,
   });
+
+  // Best-effort - a failed bonus must never block signing up.
+  void welcomeBonusFor(client.id).catch(() => undefined);
 
   return {
     id: client.id,

@@ -232,7 +232,14 @@ export const findCompletedTripsByCaptainInRange = async (
         ...(params.to ? { lte: params.to } : {}),
       },
     },
-    select: { id: true, price: true, companyShare: true, completedAt: true },
+    select: {
+      id: true,
+      price: true,
+      companyShare: true,
+      discountAmount: true,
+      creditUsed: true,
+      completedAt: true,
+    },
     orderBy: { completedAt: "desc" },
   });
 };

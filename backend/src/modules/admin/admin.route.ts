@@ -14,6 +14,13 @@ import {
   createBonusTierSchema,
   updateBonusTierSchema,
 } from "../bonus-tier/bonus-tier.validation.js";
+import * as offersController from "../offers/offers.controller.js";
+import {
+  createPromoCodeSchema,
+  updatePromoCodeSchema,
+  grantCreditSchema,
+  offerSettingsSchema,
+} from "../offers/offers.validation.js";
 import { rejectSettlementSubmissionSchema } from "../settlement/settlement.validation.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import { authenticate, authorize } from "../../middlewares/auth.js";
@@ -105,6 +112,51 @@ router.patch(
   perm("settlements", "EDIT"),
   validate(rejectSettlementSubmissionSchema),
   settlementController.rejectSubmission,
+);
+
+router.get(
+  "/promo-codes",
+  perm("offers", "VIEW"),
+  offersController.getPromoCodes,
+);
+router.post(
+  "/promo-codes",
+  perm("offers", "EDIT"),
+  validate(createPromoCodeSchema),
+  offersController.createPromoCode,
+);
+router.patch(
+  "/promo-codes/:id",
+  perm("offers", "EDIT"),
+  validate(updatePromoCodeSchema),
+  offersController.updatePromoCode,
+);
+router.delete(
+  "/promo-codes/:id",
+  perm("offers", "EDIT"),
+  offersController.deletePromoCode,
+);
+router.post(
+  "/credit/grant",
+  perm("offers", "EDIT"),
+  validate(grantCreditSchema),
+  offersController.grantCredit,
+);
+router.get(
+  "/credit/transactions",
+  perm("offers", "VIEW"),
+  offersController.getCreditTransactions,
+);
+router.get(
+  "/offers/settings",
+  perm("offers", "VIEW"),
+  offersController.getOfferSettings,
+);
+router.put(
+  "/offers/settings",
+  perm("offers", "EDIT"),
+  validate(offerSettingsSchema),
+  offersController.updateOfferSettings,
 );
 
 router.get(

@@ -8,6 +8,8 @@ import {
   changeClientPasswordSchema,
 } from "./client.validation.js";
 import { requirePermission as perm } from "../../middlewares/requirePermission.js";
+import * as offersController from "../offers/offers.controller.js";
+import { validatePromoSchema } from "../offers/offers.validation.js";
 import tripRouter from "../trip/trip.route.js";
 import * as pricingController from "../pricing/pricing.controller.js";
 import * as appSettingsController from "../app-settings/app-settings.controller.js";
@@ -32,6 +34,19 @@ router.get(
   authenticate,
   authorize("CLIENT"),
   appSettingsController.getPublicSettings,
+);
+router.get(
+  "/credit",
+  authenticate,
+  authorize("CLIENT"),
+  offersController.getMyCredit,
+);
+router.post(
+  "/promo/validate",
+  authenticate,
+  authorize("CLIENT"),
+  validate(validatePromoSchema),
+  offersController.validatePromo,
 );
 router.get("/me", authenticate, authorize("CLIENT"), clientController.getMe);
 router.patch(
