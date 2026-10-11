@@ -585,6 +585,7 @@ const applyCancellationPenaltyIfDue = async (captainId: string) => {
       captainId,
       amount,
       `غرامة إلغاء رحلة (تجاوز الحد المسموح: ${freeLimit})`,
+      "PENALTY",
     ),
   ]);
   void notifyAccount(captainId, "CAPTAIN", {

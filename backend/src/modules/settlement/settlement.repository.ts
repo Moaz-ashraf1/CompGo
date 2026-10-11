@@ -27,9 +27,25 @@ export const findSubmissionById = async (id: string) => {
   return prisma.settlementSubmission.findUnique({ where: { id } });
 };
 
-export const findAllSubmissions = async (params: { status?: SettlementStatus }) => {
+export const findAllSubmissions = async (params: {
+  status?: SettlementStatus;
+  from?: Date;
+  to?: Date;
+  captainId?: string;
+}) => {
   return prisma.settlementSubmission.findMany({
-    where: { ...(params.status ? { status: params.status } : {}) },
+    where: {
+      ...(params.status ? { status: params.status } : {}),
+      ...(params.captainId ? { captainId: params.captainId } : {}),
+      ...(params.from || params.to
+        ? {
+            submittedAt: {
+              ...(params.from ? { gte: params.from } : {}),
+              ...(params.to ? { lte: params.to } : {}),
+            },
+          }
+        : {}),
+    },
     orderBy: { submittedAt: "desc" },
   });
 };

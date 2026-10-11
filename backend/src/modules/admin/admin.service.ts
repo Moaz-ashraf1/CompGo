@@ -13,7 +13,11 @@ import {
 } from "../../exceptions/captain.exceptions.js";
 import { ClientNotFoundError } from "../../exceptions/client.exceptions.js";
 import { TripNotFoundError } from "../../exceptions/trip.exceptions.js";
-import type { TripStatus, TripType } from "../../generated/prisma/client.js";
+import type {
+  TripStatus,
+  TripType,
+  WalletTransactionKind,
+} from "../../generated/prisma/client.js";
 import type {
   UpdateCaptainPhoneDTO,
   ResetPasswordDTO,
@@ -180,9 +184,17 @@ export const getWalletTransactions = async (params: {
   page?: number;
   from?: Date;
   to?: Date;
+  captainId?: string;
+  kind?: WalletTransactionKind;
 }) => {
   const page = Math.max(1, params.page ?? 1);
   const skip = (page - 1) * WALLET_TRANSACTIONS_PAGE_SIZE;
+  const filters = {
+    from: params.from,
+    to: params.to,
+    captainId: params.captainId,
+    kind: params.kind,
+  };
 
   const [transactions, total, summary] = await Promise.all([
     captainRepo.findAllWalletTransactions({
@@ -190,12 +202,11 @@ export const getWalletTransactions = async (params: {
       take: WALLET_TRANSACTIONS_PAGE_SIZE,
       from: params.from,
       to: params.to,
+      captainId: params.captainId,
+      kind: params.kind,
     }),
-    captainRepo.countWalletTransactions({ from: params.from, to: params.to }),
-    captainRepo.getWalletTransactionsSummary({
-      from: params.from,
-      to: params.to,
-    }),
+    captainRepo.countWalletTransactions(filters),
+    captainRepo.getWalletTransactionsSummary(filters),
   ]);
 
   const captainIds = [...new Set(transactions.map((t) => t.captainId))];

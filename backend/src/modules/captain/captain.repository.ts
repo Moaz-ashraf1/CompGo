@@ -3,7 +3,10 @@ import type {
   RegisterCaptainDTO,
   LoginCaptainDTO,
 } from "./captain.validation.js";
-import { CaptainStatus } from "../../generated/prisma/client.js";
+import {
+  CaptainStatus,
+  WalletTransactionKind,
+} from "../../generated/prisma/client.js";
 
 export const captainSafeSelect = {
   id: true,
@@ -243,8 +246,23 @@ export const createWalletTransaction = async (
   captainId: string,
   amount: number,
   reason: string,
+  kind: WalletTransactionKind = WalletTransactionKind.ADJUSTMENT,
 ) => {
-  return prisma.walletTransaction.create({ data: { captainId, amount, reason } });
+  return prisma.walletTransaction.create({
+    data: { captainId, amount, reason, kind },
+  });
+};
+
+/// Every wallet transaction for one captain in an optional date range - the
+/// non-trip half of their full ledger (see wallet/ledger.service.ts).
+export const findWalletTransactionsInRange = async (
+  captainId: string,
+  params: { from?: Date; to?: Date },
+) => {
+  return prisma.walletTransaction.findMany({
+    where: { captainId, ...walletDateWhere(params) },
+    orderBy: { createdAt: "desc" },
+  });
 };
 
 export const findWalletTransactionsByCaptain = async (
@@ -272,30 +290,41 @@ const walletDateWhere = (params: { from?: Date; to?: Date }) =>
       }
     : {};
 
-export const findAllWalletTransactions = async (params: {
-  skip: number;
-  take: number;
+type WalletFilters = {
   from?: Date;
   to?: Date;
-}) => {
+  captainId?: string;
+  kind?: WalletTransactionKind;
+};
+
+const walletWhere = (params: WalletFilters) => ({
+  ...walletDateWhere(params),
+  ...(params.captainId ? { captainId: params.captainId } : {}),
+  ...(params.kind ? { kind: params.kind } : {}),
+});
+
+export const findAllWalletTransactions = async (
+  params: {
+    skip: number;
+    take: number;
+  } & WalletFilters,
+) => {
   return prisma.walletTransaction.findMany({
-    where: walletDateWhere(params),
+    where: walletWhere(params),
     orderBy: { createdAt: "desc" },
     skip: params.skip,
     take: params.take,
   });
 };
 
-export const countWalletTransactions = async (
-  params: { from?: Date; to?: Date } = {},
-) => {
-  return prisma.walletTransaction.count({ where: walletDateWhere(params) });
+export const countWalletTransactions = async (params: WalletFilters = {}) => {
+  return prisma.walletTransaction.count({ where: walletWhere(params) });
 };
 
 export const getWalletTransactionsSummary = async (
-  params: { from?: Date; to?: Date } = {},
+  params: WalletFilters = {},
 ) => {
-  const dateWhere = walletDateWhere(params);
+  const dateWhere = walletWhere(params);
   const [charged, paidOut] = await Promise.all([
     prisma.walletTransaction.aggregate({
       where: { ...dateWhere, amount: { gt: 0 } },

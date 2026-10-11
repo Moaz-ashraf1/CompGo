@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import * as adminService from "./admin.service.js";
 import * as tripService from "../trip/trip.service.js";
+import type { WalletTransactionKind } from "../../generated/prisma/client.js";
 import type { TripStatus, TripType } from "../../generated/prisma/client.js";
 import { parseDateParam } from "../../utils/parseDateParam.js";
 
@@ -108,11 +109,19 @@ export const getTripMessages = asyncHandler(
 
 export const getWalletTransactions = asyncHandler(
   async (req: Request, res: Response) => {
-    const { page } = req.query as { page?: string };
+    const { page, captainId, kind } = req.query as {
+      page?: string;
+      captainId?: string;
+      kind?: string;
+    };
     const result = await adminService.getWalletTransactions({
       page: page ? Number(page) : undefined,
       from: parseDateParam(req.query.from, false),
       to: parseDateParam(req.query.to, true),
+      captainId: captainId || undefined,
+      kind: ["ADJUSTMENT", "PENALTY", "COLLECTION"].includes(kind ?? "")
+        ? (kind as WalletTransactionKind)
+        : undefined,
     });
 
     res.status(StatusCodes.OK).json({ status: "success", data: result });

@@ -150,14 +150,24 @@ export const unblockCaptain = async (id: string) => {
   );
 };
 
-export const resetAmountDue = async (id: string) => {
+export const resetAmountDue = async (
+  id: string,
+  reason = "تحصيل المستحقات",
+) => {
   const captain = await captainRepo.findCaptainById(id);
 
   if (!captain) {
     throw new captainExceptions.CaptainNotFoundError();
   }
 
+  const collected = Number(captain.amountDue);
   const updated = await captainRepo.resetCaptainAmountDue(id);
+  // Collecting the dues is a real money movement - without a ledger entry
+  // it just vanished from the wallet history. (amount = change in
+  // amountDue, so a collection is negative.)
+  if (collected > 0) {
+    await captainRepo.createWalletTransaction(id, -collected, reason, "COLLECTION");
+  }
   return withSettlementInfo(updated);
 };
 

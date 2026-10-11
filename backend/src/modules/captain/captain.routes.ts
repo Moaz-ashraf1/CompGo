@@ -22,6 +22,7 @@ import * as notificationController from "../notification/notification.controller
 import * as settlementController from "../settlement/settlement.controller.js";
 import { createSettlementSubmissionSchema } from "../settlement/settlement.validation.js";
 import { settlementScreenshotUpload } from "../../config/upload.js";
+import * as walletController from "../wallet/wallet.controller.js";
 import { requirePermission as perm } from "../../middlewares/requirePermission.js";
 import { attachSettlementScreenshot } from "../../middlewares/attachSettlementScreenshot.js";
 
@@ -43,6 +44,12 @@ router.get(
   authenticate,
   authorize("CAPTAIN"),
   captainController.getWallet,
+);
+router.get(
+  "/wallet/transactions",
+  authenticate,
+  authorize("CAPTAIN"),
+  walletController.getMyTransactions,
 );
 router.get(
   "/me/rating",

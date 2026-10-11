@@ -124,12 +124,21 @@ model Captain {
 /// captain more (e.g. correcting a missed commission), negative pays them
 /// out/reduces what they owe. Kept as its own audit trail separate from
 /// the per-trip commission entries in the captain's wallet history.
+enum WalletTransactionKind {
+  ADJUSTMENT
+  PENALTY
+  COLLECTION
+}
+
 model WalletTransaction {
-  id        String   @id @default(uuid())
+  id        String                @id @default(uuid())
   captainId String
-  amount    Decimal  @db.Decimal(10, 2)
+  amount    Decimal               @db.Decimal(10, 2)
   reason    String
-  createdAt DateTime @default(now())
+  // What kind of movement this is - the amount is always the change in the
+  // captain's amountDue (positive = owes more, negative = owes less).
+  kind      WalletTransactionKind @default(ADJUSTMENT)
+  createdAt DateTime              @default(now())
 
   @@index([captainId, createdAt])
 }

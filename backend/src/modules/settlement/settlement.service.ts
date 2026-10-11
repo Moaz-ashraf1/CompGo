@@ -48,6 +48,9 @@ export const getMyPendingSubmission = async (captainId: string) => {
 
 export const getAllSubmissions = async (params: {
   status?: SettlementStatus;
+  from?: Date;
+  to?: Date;
+  captainId?: string;
 }) => {
   const submissions = await settlementRepo.findAllSubmissions(params);
   return attachCaptainInfo(submissions);
@@ -62,7 +65,12 @@ export const approveSubmission = async (id: string) => {
 
   const [updated] = await Promise.all([
     settlementRepo.markSubmissionApproved(id),
-    captainService.resetAmountDue(submission.captainId),
+    captainService.resetAmountDue(
+      submission.captainId,
+      `تحصيل المستحقات عبر ${
+        submission.paymentMethod === "INSTAPAY" ? "إنستاباي" : "فودافون كاش"
+      }`,
+    ),
   ]);
 
   void notifyAccount(submission.captainId, "CAPTAIN", {

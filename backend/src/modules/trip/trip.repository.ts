@@ -216,6 +216,27 @@ export const findActiveTripForClient = async (clientId: string) => {
   });
 };
 
+/// Completed trips for one captain in an optional completion-date range -
+/// the trip half of their full wallet ledger (see wallet/ledger.service.ts).
+export const findCompletedTripsByCaptainInRange = async (
+  captainId: string,
+  params: { from?: Date; to?: Date },
+) => {
+  return prisma.trip.findMany({
+    where: {
+      captainId,
+      status: TripStatus.COMPLETED,
+      completedAt: {
+        not: null,
+        ...(params.from ? { gte: params.from } : {}),
+        ...(params.to ? { lte: params.to } : {}),
+      },
+    },
+    select: { id: true, price: true, companyShare: true, completedAt: true },
+    orderBy: { completedAt: "desc" },
+  });
+};
+
 export const getCaptainRatingStats = async (captainId: string) => {
   const agg = await prisma.trip.aggregate({
     where: { captainId, rating: { not: null } },
