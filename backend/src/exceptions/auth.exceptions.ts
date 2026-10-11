@@ -24,3 +24,10 @@ export class SessionCompromisedError extends AppException {
     super(message, StatusCodes.UNAUTHORIZED);
   }
 }
+
+export class AccountBlockedError extends AppException {
+  public readonly code = "ACCOUNT_BLOCKED";
+  constructor() {
+    super("تم إيقاف حسابك، تواصل مع الدعم", StatusCodes.FORBIDDEN);
+  }
+}

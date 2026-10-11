@@ -22,6 +22,10 @@ export const removeDeviceToken = async (token: string) => {
   await prisma.deviceToken.deleteMany({ where: { token } });
 };
 
+export const removeAllByAccountId = async (accountId: string) => {
+  await prisma.deviceToken.deleteMany({ where: { accountId } });
+};
+
 export const findTokensByAccountId = async (accountId: string) => {
   return prisma.deviceToken.findMany({
     where: { accountId },

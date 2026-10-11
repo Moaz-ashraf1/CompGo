@@ -1,3 +1,4 @@
+import { lockOutAccount } from "../auth/lockout.js";
 import {
   InvalidCredentialsError,
   PhoneAlreadyInUseError,
@@ -47,7 +48,9 @@ export const blockClient = async (id: string) => {
   if (!client) throw new ClientNotFoundError();
 
   if (client.status === ClientStatus.BLOCKED) return client;
-  return clientRepo.updateClientStatus(id, ClientStatus.BLOCKED);
+  const blocked = await clientRepo.updateClientStatus(id, ClientStatus.BLOCKED);
+  await lockOutAccount("CLIENT", id);
+  return blocked;
 };
 
 export const unblockClient = async (id: string) => {

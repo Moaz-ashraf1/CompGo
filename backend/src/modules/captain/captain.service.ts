@@ -13,6 +13,7 @@ import {
 } from "../../exceptions/captain.exceptions.js";
 import { comparePassword, hashPassword } from "../../utils/hash.js";
 import * as tripService from "../trip/trip.service.js";
+import { lockOutAccount } from "../auth/lockout.js";
 
 export const getMe = async (captainId: string) => {
   const captain = await captainRepo.findCaptainById(captainId);
@@ -125,9 +126,12 @@ export const blockCaptain = async (id: string) => {
     return withSettlementInfo(captain);
   }
 
-  return withSettlementInfo(
-    await captainRepo.updateCaptainStatus(id, CaptainStatus.BLOCKED),
+  const blocked = await captainRepo.updateCaptainStatus(
+    id,
+    CaptainStatus.BLOCKED,
   );
+  await lockOutAccount("CAPTAIN", id);
+  return withSettlementInfo(blocked);
 };
 
 export const unblockCaptain = async (id: string) => {

@@ -8,6 +8,8 @@ import {
   SessionCompromisedError,
 } from "../../exceptions/auth.exceptions.js";
 import type { AccountRole } from "../../utils/jwt.js";
+import { isAccountBlocked } from "../../utils/accountStatus.js";
+import { AccountBlockedError } from "../../exceptions/auth.exceptions.js";
 const REFRESH_TOKEN_EXPIRES_IN_DAYS = 30;
 
 const buildRefreshTokenExpiry = () => {
@@ -63,6 +65,11 @@ export const rotateRefreshToken = async (params: {
 
   if (existing.expiresAt < new Date()) {
     throw new RefreshTokenExpiredError();
+  }
+
+  if (await isAccountBlocked(existing.role, existing.accountId)) {
+    await authRepo.revokeFamily(existing.familyId);
+    throw new AccountBlockedError();
   }
 
   await authRepo.revokeRefreshToken(existing.id);

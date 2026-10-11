@@ -21,6 +21,7 @@ const globalErrorHandler = (
     return res.status(err.statusCode).json({
       status: "error",
       message: err.message,
+      ...("code" in err ? { code: (err as { code: string }).code } : {}),
     });
   }
 

@@ -2,6 +2,7 @@ import type { Server as HttpServer } from "node:http";
 import { Server as SocketIOServer } from "socket.io";
 import { verifyAccessToken } from "../utils/jwt.js";
 import { logger } from "../config/logger.js";
+import { isAccountBlocked } from "../utils/accountStatus.js";
 
 let io: SocketIOServer | null = null;
 
@@ -23,7 +24,7 @@ export const initSocket = (httpServer: HttpServer) => {
     cors: { origin: "*" },
   });
 
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     const authToken = socket.handshake.auth?.["token"] as string | undefined;
     const headerToken = socket.handshake.headers.authorization?.replace(
       /^Bearer\s+/i,
@@ -38,6 +39,10 @@ export const initSocket = (httpServer: HttpServer) => {
 
     try {
       const payload = verifyAccessToken(token);
+      if (await isAccountBlocked(payload.role, payload.sub)) {
+        next(new Error("ACCOUNT_BLOCKED"));
+        return;
+      }
       socket.data.userId = payload.sub;
       socket.data.role = payload.role;
       next();
@@ -84,4 +89,12 @@ export const emitToCaptain = (
 
 export const emitToCaptainsBroadcast = (event: string, payload: unknown) => {
   io?.to("captains:broadcast").emit(event, payload);
+};
+
+/// Tells every open session of a just-blocked account to log out, then
+/// closes their sockets (after a beat, so the event actually gets sent).
+export const kickAccount = (role: "CAPTAIN" | "CLIENT", id: string) => {
+  const room = role === "CAPTAIN" ? `captain:${id}` : `client:${id}`;
+  io?.to(room).emit("account:blocked", {});
+  setTimeout(() => io?.in(room).disconnectSockets(true), 500);
 };

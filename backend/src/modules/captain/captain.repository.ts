@@ -30,7 +30,10 @@ export const captainSafeSelect = {
 /// notification.service.ts -> notifyAllCaptains), where the full profile
 /// select would be wasted work.
 export const findAllCaptainIds = async () => {
-  return prisma.captain.findMany({ select: { id: true } });
+  return prisma.captain.findMany({
+    where: { status: "ACTIVE" },
+    select: { id: true },
+  });
 };
 
 export const findCaptainByPhone = async (phone: string) => {
@@ -49,14 +52,14 @@ export const findCaptainByPhone = async (phone: string) => {
 /// requestTrip and notification.service.ts -> notifyFemaleCaptains).
 export const findFemaleCaptainIds = async () => {
   return prisma.captain.findMany({
-    where: { gender: "FEMALE" },
+    where: { gender: "FEMALE", status: "ACTIVE" },
     select: { id: true },
   });
 };
 
 export const findMaleCaptainIds = async () => {
   return prisma.captain.findMany({
-    where: { gender: "MALE" },
+    where: { gender: "MALE", status: "ACTIVE" },
     select: { id: true },
   });
 };
