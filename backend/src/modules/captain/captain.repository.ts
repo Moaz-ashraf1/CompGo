@@ -324,19 +324,28 @@ export const countWalletTransactions = async (params: WalletFilters = {}) => {
 export const getWalletTransactionsSummary = async (
   params: WalletFilters = {},
 ) => {
-  const dateWhere = walletWhere(params);
-  const [charged, paidOut] = await Promise.all([
+  const base = walletWhere(params);
+  // `kind` filter on the page narrows which rows each total can see.
+  const [charged, paidOut, collected] = await Promise.all([
     prisma.walletTransaction.aggregate({
-      where: { ...dateWhere, amount: { gt: 0 } },
+      where: { ...base, amount: { gt: 0 } },
       _sum: { amount: true },
     }),
     prisma.walletTransaction.aggregate({
-      where: { ...dateWhere, amount: { lt: 0 } },
+      where: { ...base, amount: { lt: 0 }, kind: { not: "COLLECTION" } },
+      _sum: { amount: true },
+    }),
+    prisma.walletTransaction.aggregate({
+      where: { ...base, kind: "COLLECTION" },
       _sum: { amount: true },
     }),
   ]);
   return {
+    // Charges to captains (adjustments up, cancellation penalties).
     totalCharged: Number(charged._sum.amount ?? 0),
+    // Manual credits paid out to captains (negative adjustments).
     totalPaidOut: Math.abs(Number(paidOut._sum.amount ?? 0)),
+    // Dues actually collected from captains (resets / approved payments).
+    totalCollected: Math.abs(Number(collected._sum.amount ?? 0)),
   };
 };
