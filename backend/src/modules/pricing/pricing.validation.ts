@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+const commissionRuleSchema = z.object({
+  mode: z.enum(["FIXED", "PERCENT"]),
+  value: z.number().min(0),
+  onTop: z.boolean(),
+});
+
 export const updatePricingSchema = z
   .object({
     rideInsideCompoundPrice: z.number().positive(),
@@ -15,11 +21,28 @@ export const updatePricingSchema = z
     // trip.service.ts -> calculatePrice). Only the field(s) the chosen
     // mode actually uses are required below.
     outsideCompoundMode: z
-      .enum(["PER_KM", "FLAT", "THRESHOLD"])
+      .enum(["PER_KM", "FLAT", "THRESHOLD", "DISTANCE_BANDS"])
       .default("PER_KM"),
     outsideCompoundFlatPrice: z.number().positive().optional(),
     outsideCompoundBasePrice: z.number().min(0).optional(),
     outsideCompoundThresholdKm: z.number().min(0).optional(),
+    // DISTANCE_BANDS: rate per km picked by the trip's TOTAL distance.
+    outsideBandLimitKm: z.number().positive().nullable().optional(),
+    outsideRateNearKm: z.number().min(0).nullable().optional(),
+    outsideRateFarKm: z.number().min(0).nullable().optional(),
+    // Fixed airport entry fee added to every airport trip; null = the
+    // client pays it at the gate (not part of the app's price).
+    airportCardFee: z.number().min(0).nullable().optional(),
+    // Company share per category - a missing category falls back to
+    // commissionPercentage (see utils/commission.ts).
+    commissionRules: z
+      .object({
+        RIDE_INSIDE: commissionRuleSchema.optional(),
+        RIDE_OUTSIDE: commissionRuleSchema.optional(),
+        AIRPORT: commissionRuleSchema.optional(),
+        ORDER: commissionRuleSchema.optional(),
+      })
+      .optional(),
     // How an ORDER trip covering more than one pickup place gets priced
     // (see trip.service.ts -> calculatePrice).
     orderPlacesMode: z.enum(["FLAT", "PER_PLACE", "TIERED"]).default("FLAT"),
@@ -51,6 +74,18 @@ export const updatePricingSchema = z
       message:
         "outsideCompoundBasePrice and outsideCompoundThresholdKm are required for THRESHOLD mode",
       path: ["outsideCompoundThresholdKm"],
+    },
+  )
+  .refine(
+    (data) =>
+      data.outsideCompoundMode !== "DISTANCE_BANDS" ||
+      (data.outsideBandLimitKm != null &&
+        data.outsideRateNearKm != null &&
+        data.outsideRateFarKm != null),
+    {
+      message:
+        "outsideBandLimitKm, outsideRateNearKm and outsideRateFarKm are required for DISTANCE_BANDS mode",
+      path: ["outsideBandLimitKm"],
     },
   )
   .refine(

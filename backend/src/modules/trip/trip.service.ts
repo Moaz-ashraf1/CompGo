@@ -15,6 +15,7 @@ import {
   notifyFemaleCaptains,
   notifyMaleCaptains,
 } from "../notification/notification.service.js";
+import { splitFare, tripCompanyShare, type CommissionCategory } from "../../utils/commission.js";
 import { isPointInsidePolygon, haversineDistanceKm } from "../../utils/geo.js";
 import { TripStatus, TripType } from "../../generated/prisma/client.js";
 import type {
@@ -116,7 +117,7 @@ const calculatePrice = async (params: {
   if (!pricing) throw new NoPricingConfigError();
 
   if (params.type === TripType.AIRPORT) {
-    return Number(pricing.airportPrice);
+    return Number(pricing.airportPrice) + Number(pricing.airportCardFee ?? 0);
   }
 
   if (params.type === TripType.ORDER) {
@@ -152,6 +153,14 @@ const calculatePrice = async (params: {
   switch (pricing.outsideCompoundMode) {
     case "FLAT":
       return Number(pricing.outsideCompoundFlatPrice ?? 0);
+    case "DISTANCE_BANDS": {
+      const limit = Number(pricing.outsideBandLimitKm ?? 0);
+      const rate =
+        params.distanceKm <= limit
+          ? Number(pricing.outsideRateNearKm ?? 0)
+          : Number(pricing.outsideRateFarKm ?? 0);
+      return params.distanceKm * rate;
+    }
     case "THRESHOLD": {
       const thresholdKm = Number(pricing.outsideCompoundThresholdKm ?? 0);
       const basePrice = Number(pricing.outsideCompoundBasePrice ?? 0);
@@ -162,6 +171,15 @@ const calculatePrice = async (params: {
     default:
       return params.distanceKm * Number(pricing.rideOutsidePricePerKm);
   }
+};
+
+const commissionCategoryFor = (
+  type: TripType,
+  isInsideCompound: boolean,
+): CommissionCategory => {
+  if (type === TripType.AIRPORT) return "AIRPORT";
+  if (type === TripType.ORDER) return "ORDER";
+  return isInsideCompound ? "RIDE_INSIDE" : "RIDE_OUTSIDE";
 };
 
 const AIRPORT_LABEL = "مطار القاهرة الدولي";
@@ -249,12 +267,19 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
       )
     : null;
 
-  const price = await calculatePrice({
+  const fare = await calculatePrice({
     type: data.type as TripType,
     isInsideCompound,
     distanceKm,
     placesCount: data.placesCount ?? null,
   });
+  // calculatePrice already proved a pricing config exists.
+  const pricingConfig = (await pricingRepo.findPricingConfig())!;
+  const { price, companyShare } = splitFare(
+    fare,
+    commissionCategoryFor(data.type as TripType, isInsideCompound),
+    pricingConfig,
+  );
 
   const created = await tripRepo.createTrip({
     type: data.type,
@@ -269,6 +294,7 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
     isInsideCompound,
     distanceKm,
     price,
+    companyShare,
     status: TripStatus.REQUESTED,
     paymentMethod: data.paymentMethod ?? "CASH",
     scheduledAt: data.scheduledAt ?? null,
@@ -516,8 +542,7 @@ export const completeTrip = async (captainId: string, tripId: string) => {
   const pricing = await pricingRepo.findPricingConfig();
   if (!pricing) throw new NoPricingConfigError();
 
-  const commission =
-    Number(trip.price) * (Number(pricing.commissionPercentage) / 100);
+  const commission = tripCompanyShare(trip, pricing.commissionPercentage);
 
   const [updatedTrip] = await Promise.all([
     tripRepo.updateTripStatus(tripId, {
@@ -642,7 +667,7 @@ export const getCaptainWallet = async (captainId: string) => {
     : 0;
 
   const tripTransactions = recentTrips.flatMap((trip) => {
-    const commission = Number(trip.price) * (commissionPercentage / 100);
+    const commission = tripCompanyShare(trip, commissionPercentage);
     return [
       {
         type: "TRIP_FARE" as const,

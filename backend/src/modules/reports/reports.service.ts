@@ -95,9 +95,9 @@ export const getOverviewReport = async (
 
 /// Company commission (platform's cut) from every captain's completed
 /// trips, split by inside/outside-compound, optionally scoped to a date
-/// range - uses the *current* commission percentage against historical
-/// trip prices (same simplification the captain wallet view already
-/// makes; the exact rate at the time isn't tracked per-trip).
+/// range. Each trip's company share is recorded when it's requested
+/// (Trip.companyShare); only trips from before that existed fall back to
+/// the *current* commission percentage against their price.
 export const getCaptainCommissionsReport = async (params: {
   from?: Date;
   to?: Date;
@@ -122,6 +122,8 @@ export const getCaptainCommissionsReport = async (params: {
       insideRevenue: number;
       outsideTrips: number;
       outsideRevenue: number;
+      insideCommission: number;
+      outsideCommission: number;
     }
   >();
 
@@ -134,13 +136,19 @@ export const getCaptainCommissionsReport = async (params: {
       insideRevenue: 0,
       outsideTrips: 0,
       outsideRevenue: 0,
+      insideCommission: 0,
+      outsideCommission: 0,
     };
+    const commission =
+      row.recordedCommission + row.legacyRevenue * (commissionPercentage / 100);
     if (row.isInsideCompound) {
       entry.insideTrips += row.tripCount;
       entry.insideRevenue += row.revenue;
+      entry.insideCommission += commission;
     } else {
       entry.outsideTrips += row.tripCount;
       entry.outsideRevenue += row.revenue;
+      entry.outsideCommission += commission;
     }
     byCaptain.set(row.captainId, entry);
   }
@@ -153,9 +161,7 @@ export const getCaptainCommissionsReport = async (params: {
         ...c,
         totalTrips,
         totalRevenue,
-        insideCommission: c.insideRevenue * (commissionPercentage / 100),
-        outsideCommission: c.outsideRevenue * (commissionPercentage / 100),
-        totalCommission: totalRevenue * (commissionPercentage / 100),
+        totalCommission: c.insideCommission + c.outsideCommission,
       };
     })
     .sort((a, b) => b.totalCommission - a.totalCommission);

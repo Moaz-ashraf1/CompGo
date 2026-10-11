@@ -140,28 +140,47 @@ export const getCaptainCommissionBreakdown = async (params: {
   from?: Date;
   to?: Date;
 }) => {
-  const rows = await prisma.trip.groupBy({
-    by: ["captainId", "isInsideCompound"],
-    where: {
-      status: TripStatus.COMPLETED,
-      captainId: { not: null },
-      ...(params.from || params.to
-        ? {
-            completedAt: {
-              ...(params.from ? { gte: params.from } : {}),
-              ...(params.to ? { lte: params.to } : {}),
-            },
-          }
-        : {}),
-    },
-    _sum: { price: true },
-    _count: true,
-  });
+  const where = {
+    status: TripStatus.COMPLETED,
+    captainId: { not: null },
+    ...(params.from || params.to
+      ? {
+          completedAt: {
+            ...(params.from ? { gte: params.from } : {}),
+            ...(params.to ? { lte: params.to } : {}),
+          },
+        }
+      : {}),
+  };
+  const [rows, legacyRows] = await Promise.all([
+    prisma.trip.groupBy({
+      by: ["captainId", "isInsideCompound"],
+      where,
+      _sum: { price: true, companyShare: true },
+      _count: true,
+    }),
+    // Trips from before the company share was recorded per trip - their
+    // commission is still price * the current percentage (see
+    // reports.service.ts -> getCaptainCommissionsReport).
+    prisma.trip.groupBy({
+      by: ["captainId", "isInsideCompound"],
+      where: { ...where, companyShare: null },
+      _sum: { price: true },
+    }),
+  ]);
+  const legacyByKey = new Map(
+    legacyRows.map((r) => [
+      `${r.captainId}:${r.isInsideCompound}`,
+      Number(r._sum.price ?? 0),
+    ]),
+  );
   return rows.map((r) => ({
     captainId: r.captainId as string,
     isInsideCompound: r.isInsideCompound,
     tripCount: r._count,
     revenue: Number(r._sum.price ?? 0),
+    recordedCommission: Number(r._sum.companyShare ?? 0),
+    legacyRevenue: legacyByKey.get(`${r.captainId}:${r.isInsideCompound}`) ?? 0,
   }));
 };
 

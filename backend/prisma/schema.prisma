@@ -286,6 +286,10 @@ enum OutsideCompoundPricingMode {
   PER_KM
   FLAT
   THRESHOLD
+  // Rate per km depends on the trip's total distance: outsideRateNearKm up
+  // to outsideBandLimitKm, outsideRateFarKm beyond it - applied to the
+  // WHOLE distance, not marginally (e.g. 12km at 12/km = 144, not 10*11+2*12).
+  DISTANCE_BANDS
 }
 
 enum OrderPlacesPricingMode {
@@ -329,6 +333,22 @@ model PricingConfig {
   orderPlacesMode            OrderPlacesPricingMode     @default(FLAT)
   orderExtraPlacePrice       Decimal?                   @db.Decimal(10, 2)
   orderPlaceTiers            Json?
+  // DISTANCE_BANDS mode inputs (see OutsideCompoundPricingMode).
+  outsideBandLimitKm         Decimal?                   @db.Decimal(10, 2)
+  outsideRateNearKm          Decimal?                   @db.Decimal(10, 2)
+  outsideRateFarKm           Decimal?                   @db.Decimal(10, 2)
+  // Fixed airport entry fee ("كارتة") added to every airport trip's fare.
+  // Leave null when the client pays it at the gate instead.
+  airportCardFee             Decimal?                   @db.Decimal(10, 2)
+  // Company share per trip category, e.g.
+  //   { "RIDE_INSIDE": { "mode": "FIXED", "value": 7, "onTop": false },
+  //     "RIDE_OUTSIDE": { "mode": "FIXED", "value": 20, "onTop": true } }
+  // mode: FIXED (value is EGP) or PERCENT (value is % of the fare).
+  // onTop: false = the share is taken out of what the client pays;
+  // true = it is added on top of the fare (client pays fare + share).
+  // A category with no rule falls back to `commissionPercentage`, taken
+  // out of the fare (the original behaviour). See utils/commission.ts.
+  commissionRules            Json?
   updatedAt                  DateTime                   @updatedAt
 }
 
@@ -359,6 +379,10 @@ model Trip {
   // requestTrip) - restricts which captains can see/accept the trip to
   // FEMALE captains only (see getAvailableTrips/acceptTrip).
   femaleCaptainOnly    Boolean       @default(false)
+  // The company's cut of this trip in EGP, fixed when the trip is requested
+  // so later pricing changes never rewrite history. Null on trips created
+  // before this existed (they fall back to price * commissionPercentage).
+  companyShare         Decimal?      @db.Decimal(10, 2)
   // Advance-booking details, currently only meaningful for AIRPORT trips.
   // A trip is still created and matched immediately on request either
   // way - there's no scheduler yet that holds a trip until scheduledAt.
