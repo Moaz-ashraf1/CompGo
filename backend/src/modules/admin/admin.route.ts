@@ -21,6 +21,8 @@ import {
   grantCreditSchema,
   offerSettingsSchema,
 } from "../offers/offers.validation.js";
+import * as legalController from "../legal/legal.controller.js";
+import { updateLegalPageSchema } from "../legal/legal.validation.js";
 import { rejectSettlementSubmissionSchema } from "../settlement/settlement.validation.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import { authenticate, authorize } from "../../middlewares/auth.js";
@@ -42,6 +44,15 @@ router.use("/auth", authRouter);
 router.use(authenticate, authorize("ADMIN"));
 
 router.get("/me", adminUsersController.getMe);
+
+router.get("/legal", perm("settings", "VIEW"), legalController.getAll);
+router.put(
+  "/legal/:key",
+  perm("settings", "EDIT"),
+  validate(updateLegalPageSchema),
+  legalController.update,
+);
+router.delete("/legal/:key", perm("settings", "EDIT"), legalController.reset);
 
 router.get("/admins", requireSuperAdmin, adminUsersController.getAll);
 router.post(

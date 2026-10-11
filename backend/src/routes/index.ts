@@ -4,6 +4,7 @@ import captainRoutes from "../modules/captain/captain.routes.js";
 import compoundBoundaryRoutes from "../modules/compound-boundary/compound-boundary.routes.js";
 import pricingRoutes from "../modules/pricing/pricing.routes.js";
 import appSettingsRoutes from "../modules/app-settings/app-settings.routes.js";
+import * as legalController from "../modules/legal/legal.controller.js";
 import adminAuthRoutes from "../modules/admin/auth/auth.route.js";
 const router = Router();
 
@@ -13,5 +14,7 @@ router.use("/compound-boundary", compoundBoundaryRoutes);
 router.use("/pricing", pricingRoutes);
 router.use("/app-settings", appSettingsRoutes);
 router.use("/dashboard", adminAuthRoutes);
+// Public on purpose: the terms/privacy pages must be readable before login.
+router.get("/legal/:key", legalController.getPublic);
 
 export default router;

@@ -530,3 +530,19 @@ model TripPlace {
 
   @@index([tripId])
 }
+
+enum LegalPageKey {
+  TERMS_CLIENT
+  TERMS_CAPTAIN
+  PRIVACY_CLIENT
+  PRIVACY_CAPTAIN
+}
+
+/// Admin-edited terms / privacy text shown in the client and captain apps
+/// (see modules/legal). `sections` is a list of { heading, body }. A page
+/// with no row falls back to the built-in text in legal.defaults.ts.
+model LegalPage {
+  key       LegalPageKey @id
+  sections  Json
+  updatedAt DateTime     @updatedAt
+}
