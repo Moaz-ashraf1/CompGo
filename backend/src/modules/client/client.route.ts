@@ -10,6 +10,11 @@ import {
 import { requirePermission as perm } from "../../middlewares/requirePermission.js";
 import * as offersController from "../offers/offers.controller.js";
 import { validatePromoSchema } from "../offers/offers.validation.js";
+import * as familyController from "../family/family.controller.js";
+import {
+  sendFamilyRequestSchema,
+  respondFamilyRequestSchema,
+} from "../family/family.validation.js";
 import tripRouter from "../trip/trip.route.js";
 import * as pricingController from "../pricing/pricing.controller.js";
 import * as appSettingsController from "../app-settings/app-settings.controller.js";
@@ -34,6 +39,33 @@ router.get(
   authenticate,
   authorize("CLIENT"),
   appSettingsController.getPublicSettings,
+);
+router.get("/family", authenticate, authorize("CLIENT"), familyController.list);
+router.get(
+  "/family/search",
+  authenticate,
+  authorize("CLIENT"),
+  familyController.search,
+);
+router.post(
+  "/family/requests",
+  authenticate,
+  authorize("CLIENT"),
+  validate(sendFamilyRequestSchema),
+  familyController.sendRequest,
+);
+router.post(
+  "/family/requests/:id/respond",
+  authenticate,
+  authorize("CLIENT"),
+  validate(respondFamilyRequestSchema),
+  familyController.respond,
+);
+router.delete(
+  "/family/links/:id",
+  authenticate,
+  authorize("CLIENT"),
+  familyController.remove,
 );
 router.get(
   "/credit",

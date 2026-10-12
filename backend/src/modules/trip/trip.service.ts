@@ -16,6 +16,7 @@ import {
   notifyMaleCaptains,
 } from "../notification/notification.service.js";
 import * as benefits from "../offers/benefits.service.js";
+import { notifyWatchers } from "../family/family.service.js";
 import { splitFare, tripCompanyShare, type CommissionCategory } from "../../utils/commission.js";
 import { isPointInsidePolygon, haversineDistanceKm } from "../../utils/geo.js";
 import { TripStatus, TripType } from "../../generated/prisma/client.js";
@@ -332,6 +333,11 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
     throw err;
   }
   await benefits.recordBenefits(clientId, created.id, plan);
+  void notifyWatchers(clientId, {
+    kind: "requested",
+    type: created.type,
+    dropoffLabel: created.dropoffLabel,
+  });
 
   const isDueNow =
     !created.scheduledAt ||
@@ -416,6 +422,7 @@ export const cancelClientTrip = async (
     cancelledBy: "CLIENT",
   });
   void benefits.refundTripBenefits(cancelled);
+  void notifyWatchers(trip.clientId, { kind: "cancelled" });
 
   if (trip.status === TripStatus.REQUESTED) {
     // Wasn't assigned yet - every captain currently browsing it needs it
@@ -473,6 +480,11 @@ export const acceptTrip = async (captainId: string, tripId: string) => {
   const forCaptain = await attachClientInfoOne(updated!, { withPhone: true });
 
   emitToCaptainsBroadcast("trip:taken", { tripId });
+  void notifyWatchers(trip.clientId, {
+    kind: "accepted",
+    captainName: captain?.name ?? "كابتن",
+    vehicle: [captain?.vehicleModel, captain?.vehicleNumber].filter(Boolean).join(" "),
+  });
   // The client sees *captain* info attached (who picked them up), not the
   // client-attached shape this function returns to the accepting captain.
   emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(updated!));
@@ -505,6 +517,7 @@ export const startTrip = async (captainId: string, tripId: string) => {
     status: TripStatus.IN_PROGRESS,
     startedAt: new Date(),
   });
+  void notifyWatchers(trip.clientId, { kind: "started" });
   emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(started));
   void notifyAccount(trip.clientId, "CLIENT", {
     title: "بدأت رحلتك",
@@ -577,6 +590,7 @@ export const completeTrip = async (captainId: string, tripId: string) => {
   ]);
 
   void benefits.awardCashback(updatedTrip);
+  void notifyWatchers(trip.clientId, { kind: "completed" });
   emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(updatedTrip));
   void notifyAccount(trip.clientId, "CLIENT", {
     title: "اكتملت رحلتك",
@@ -640,6 +654,7 @@ export const cancelCaptainTrip = async (
     cancelledBy: "CAPTAIN",
   });
   void benefits.refundTripBenefits(cancelled);
+  void notifyWatchers(trip.clientId, { kind: "cancelled" });
   emitToClient(trip.clientId, "trip:updated", await attachCaptainInfoOne(cancelled));
   void notifyAccount(trip.clientId, "CLIENT", {
     title: "تم إلغاء رحلتك",

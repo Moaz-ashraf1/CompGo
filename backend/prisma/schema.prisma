@@ -546,3 +546,39 @@ model LegalPage {
   sections  Json
   updatedAt DateTime     @updatedAt
 }
+
+enum FamilyRelation {
+  FATHER
+  MOTHER
+  SON
+  DAUGHTER
+  HUSBAND
+  WIFE
+  BROTHER
+  SISTER
+  OTHER
+}
+
+enum FamilyLinkStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+/// A relationship one client asked another to confirm (see modules/family).
+/// `relation` is what the TARGET is to the REQUESTER ("he is my father").
+/// Once ACCEPTED, who gets notified about whose trips follows from it:
+/// a parent follows their child, spouses follow each other, anyone else is
+/// only linked (family.service.ts -> watchDirection).
+model FamilyLink {
+  id          String           @id @default(uuid())
+  requesterId String
+  targetId    String
+  relation    FamilyRelation
+  status      FamilyLinkStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  respondedAt DateTime?
+
+  @@unique([requesterId, targetId])
+  @@index([targetId])
+}

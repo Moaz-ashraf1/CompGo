@@ -21,6 +21,7 @@ import {
   grantCreditSchema,
   offerSettingsSchema,
 } from "../offers/offers.validation.js";
+import * as familyController from "../family/family.controller.js";
 import * as legalController from "../legal/legal.controller.js";
 import { updateLegalPageSchema } from "../legal/legal.validation.js";
 import { rejectSettlementSubmissionSchema } from "../settlement/settlement.validation.js";
@@ -44,6 +45,17 @@ router.use("/auth", authRouter);
 router.use(authenticate, authorize("ADMIN"));
 
 router.get("/me", adminUsersController.getMe);
+
+router.get(
+  "/family-links",
+  perm("clients", "VIEW"),
+  familyController.adminList,
+);
+router.delete(
+  "/family-links/:id",
+  perm("clients", "EDIT"),
+  familyController.adminRemove,
+);
 
 router.get("/legal", perm("settings", "VIEW"), legalController.getAll);
 router.put(
