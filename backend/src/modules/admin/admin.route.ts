@@ -9,6 +9,7 @@ import {
   resetPasswordSchema,
   resetClientPasswordByPhoneSchema,
   adjustCaptainBalanceSchema,
+  recordCaptainTransferSchema,
 } from "./admin.validation.js";
 import {
   createBonusTierSchema,
@@ -218,6 +219,22 @@ router.patch(
   perm("captains", "EDIT"),
   validate(resetPasswordSchema),
   adminController.resetCaptainPassword,
+);
+router.get(
+  "/captains/:id/wallet-summary",
+  perm("wallet", "VIEW"),
+  adminController.getCaptainWalletSummary,
+);
+router.post(
+  "/captains/:id/transfers",
+  perm("wallet", "EDIT"),
+  validate(recordCaptainTransferSchema),
+  adminController.recordCaptainTransfer,
+);
+router.post(
+  "/captains/:id/transfers/:txId/cancel",
+  perm("wallet", "EDIT"),
+  adminController.cancelCaptainTransfer,
 );
 router.patch(
   "/captains/:id/wallet-adjustment",

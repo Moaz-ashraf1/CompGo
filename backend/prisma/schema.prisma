@@ -145,6 +145,15 @@ model WalletTransaction {
   // What kind of movement this is - the amount is always the change in the
   // captain's amountDue (positive = owes more, negative = owes less).
   kind      WalletTransactionKind @default(ADJUSTMENT)
+  // How a COLLECTION was paid (INSTAPAY / VODAFONE_CASH / CASH / OTHER) and
+  // an optional admin note - null for older rows and non-collections.
+  method    String?
+  note      String?
+  // A recorded transfer the admin later cancelled. Cancelling adds a
+  // reversing COLLECTION row (reversalOfId -> the cancelled one) so the
+  // ledger stays append-only.
+  cancelledAt DateTime?
+  reversalOfId String?
   createdAt DateTime              @default(now())
 
   @@index([captainId, createdAt])

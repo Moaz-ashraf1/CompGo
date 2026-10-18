@@ -29,3 +29,13 @@ export type ResetPasswordDTO = z.infer<typeof resetPasswordSchema>;
 export type AdjustCaptainBalanceDTO = z.infer<
   typeof adjustCaptainBalanceSchema
 >;
+
+export const TRANSFER_METHODS = ["INSTAPAY", "VODAFONE_CASH", "CASH", "OTHER"] as const;
+
+/// A payment the captain made to the company (see wallet/transfers.service.ts).
+export const recordCaptainTransferSchema = z.object({
+  amount: z.number().positive(),
+  method: z.enum(TRANSFER_METHODS),
+  note: z.string().trim().max(200).optional(),
+});
+export type RecordCaptainTransferDTO = z.infer<typeof recordCaptainTransferSchema>;

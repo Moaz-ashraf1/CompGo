@@ -6,6 +6,8 @@ import * as tripService from "../trip/trip.service.js";
 import type { WalletTransactionKind } from "../../generated/prisma/client.js";
 import type { TripStatus, TripType } from "../../generated/prisma/client.js";
 import { parseDateParam } from "../../utils/parseDateParam.js";
+import { getCaptainWalletSummary as getCaptainWalletSummaryService } from "../wallet/summary.service.js";
+import { cancelTransfer, recordTransfer } from "../wallet/transfers.service.js";
 
 export const updateCaptainPhone = asyncHandler(
   async (req: Request, res: Response) => {
@@ -125,5 +127,34 @@ export const getWalletTransactions = asyncHandler(
     });
 
     res.status(StatusCodes.OK).json({ status: "success", data: result });
+  },
+);
+
+export const getCaptainWalletSummary = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { from, to } = req.query;
+    const summary = await getCaptainWalletSummaryService(req.params.id as string, {
+      from: parseDateParam(from, false),
+      to: parseDateParam(to, true),
+    });
+    if (!summary) {
+      res.status(StatusCodes.NOT_FOUND).json({ status: "fail", message: "Captain not found" });
+      return;
+    }
+    res.status(StatusCodes.OK).json({ status: "success", data: summary });
+  },
+);
+
+export const recordCaptainTransfer = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await recordTransfer(req.params.id as string, req.body);
+    res.status(StatusCodes.OK).json({ status: "success", data: result });
+  },
+);
+
+export const cancelCaptainTransfer = asyncHandler(
+  async (req: Request, res: Response) => {
+    await cancelTransfer(req.params.id as string, req.params.txId as string);
+    res.status(StatusCodes.OK).json({ status: "success" });
   },
 );
