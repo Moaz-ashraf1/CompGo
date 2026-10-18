@@ -4,6 +4,7 @@ import "dotenv/config";
 import { prisma } from "./config/prisma.js";
 import { initSocket } from "./realtime/socket.js";
 import { startScheduledTripDispatcher } from "./jobs/dispatchScheduledTrips.js";
+import { startOverdueCaptainBlocker } from "./jobs/autoBlockOverdue.js";
 
 async function startServer() {
   try {
@@ -19,6 +20,7 @@ async function startServer() {
     });
     initSocket(httpServer);
     startScheduledTripDispatcher();
+    startOverdueCaptainBlocker();
   } catch (error) {
     logger.error("Failed to connect to DB", {
       error: (error as Error).message,

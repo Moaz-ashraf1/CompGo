@@ -101,6 +101,7 @@ export const getCaptainById = async (id: string) => {
 export const updateSettlementCycle = async (
   id: string,
   settlementCycleDays: number | null,
+  autoBlockOnOverdue = false,
 ) => {
   const captain = await captainRepo.findCaptainById(id);
 
@@ -111,6 +112,7 @@ export const updateSettlementCycle = async (
   const updated = await captainRepo.updateSettlementCycle(
     id,
     settlementCycleDays,
+    settlementCycleDays !== null && autoBlockOnOverdue,
   );
   return withSettlementInfo(updated);
 };

@@ -113,6 +113,12 @@ model Captain {
   // resets their amountDue - see captain.service.ts -> resetAmountDue) to
   // compute a next-due date and flag overdue captains in the dashboard.
   settlementCycleDays Int?
+  // When true, the captain is blocked automatically once their dues stay
+  // unpaid past `settlementCycleDays` (see jobs/autoBlockOverdue.ts).
+  // `autoBlockedAt` marks that automatic block so it is not re-applied
+  // after an admin unblocks them for the same overdue cycle.
+  autoBlockOnOverdue  Boolean  @default(false)
+  autoBlockedAt       DateTime?
   lastSettledAt       DateTime?
   // New signups start PENDING and need an admin to approve them (see
   // captain.service.ts -> getPendingCaptains, and login's status check)

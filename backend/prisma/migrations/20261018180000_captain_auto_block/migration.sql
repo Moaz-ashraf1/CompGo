@@ -1,0 +1,2 @@
+ALTER TABLE "Captain" ADD COLUMN "autoBlockOnOverdue" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Captain" ADD COLUMN "autoBlockedAt" TIMESTAMP(3);

@@ -25,6 +25,8 @@ export const captainSafeSelect = {
   status: true,
   isAvailable: true,
   settlementCycleDays: true,
+  autoBlockOnOverdue: true,
+  autoBlockedAt: true,
   lastSettledAt: true,
   createdAt: true,
   updatedAt: true,
@@ -85,6 +87,8 @@ export const findAllCaptains = async () => {
       amountDue: true,
       status: true,
       settlementCycleDays: true,
+      autoBlockOnOverdue: true,
+      autoBlockedAt: true,
       lastSettledAt: true,
       createdAt: true,
     },
@@ -175,10 +179,11 @@ export const resetCaptainAmountDue = async (id: string) => {
 export const updateSettlementCycle = async (
   id: string,
   settlementCycleDays: number | null,
+  autoBlockOnOverdue: boolean,
 ) => {
   return prisma.captain.update({
     where: { id },
-    data: { settlementCycleDays },
+    data: { settlementCycleDays, autoBlockOnOverdue },
     select: captainSafeSelect,
   });
 };

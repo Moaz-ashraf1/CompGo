@@ -84,6 +84,9 @@ export const updateSettlementCycleSchema = z.object({
   // `null` clears the cycle (stops tracking a next-due date for this
   // captain).
   settlementCycleDays: z.number().int().min(1).max(365).nullable(),
+  // Block the captain automatically when they miss the deadline. Ignored
+  // (forced off) when no cycle is set.
+  autoBlockOnOverdue: z.boolean().optional(),
 });
 
 export type UpdateSettlementCycleDTO = z.infer<

@@ -99,6 +99,7 @@ export const updateSettlementCycle = asyncHandler(
     const captain = await captainService.updateSettlementCycle(
       id as string,
       req.body.settlementCycleDays,
+      req.body.autoBlockOnOverdue ?? false,
     );
 
     res.status(StatusCodes.OK).json({
