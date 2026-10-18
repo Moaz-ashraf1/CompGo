@@ -40,6 +40,10 @@ services:
       DATABASE_URL: postgresql://compgo_dev_user:${DEV_DB_PASSWORD}@postgres-dev:5432/compgo_dev
       ACCESS_TOKEN_SECRET: ${DEV_ACCESS_TOKEN_SECRET}
       FIREBASE_SERVICE_ACCOUNT: ${FIREBASE_SERVICE_ACCOUNT}
+      OSRM_URL: http://osrm:5000
+    networks:
+      - default
+      - osrm_net
     # Without this, every uploaded captain document lives only in the
     # container's writable layer and is silently wiped on the next
     # rebuild/recreate (see config/upload.ts - it writes to ./uploads,
@@ -52,6 +56,10 @@ services:
     command: sh -c "npx prisma migrate deploy && npx tsx src/server.ts"
     depends_on:
       - postgres-dev
+
+networks:
+  osrm_net:
+    external: true
 
 volumes:
   pgdata_dev:

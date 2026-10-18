@@ -19,6 +19,7 @@ import * as benefits from "../offers/benefits.service.js";
 import { notifyWatchers } from "../family/family.service.js";
 import { splitFare, tripCompanyShare, type CommissionCategory } from "../../utils/commission.js";
 import { isPointInsidePolygon, haversineDistanceKm } from "../../utils/geo.js";
+import { getDrivingDistanceKm } from "../../utils/roadDistance.js";
 import { TripStatus, TripType } from "../../generated/prisma/client.js";
 import type {
   CreateTripDTO,
@@ -263,7 +264,7 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
     data.dropoffLat !== undefined && data.dropoffLng !== undefined;
 
   const distanceKm = hasDropoff
-    ? haversineDistanceKm(
+    ? await getDrivingDistanceKm(
         { lat: data.pickupLat, lng: data.pickupLng },
         { lat: data.dropoffLat!, lng: data.dropoffLng! },
       )

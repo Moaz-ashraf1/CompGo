@@ -20,6 +20,13 @@ services:
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
       ADMIN_API_KEY: ${ADMIN_KEY}
       FIREBASE_SERVICE_ACCOUNT: ${FIREBASE_SERVICE_ACCOUNT}
+      # Self-hosted road routing (see /root/osrm on the server) - trip
+      # distance = driving distance like Google Maps. Falls back to
+      # straight-line distance if it is unreachable.
+      OSRM_URL: http://osrm:5000
+    networks:
+      - default
+      - osrm_net
     volumes:
       # Without this, every uploaded captain document (national ID,
       # license, vehicle license, profile photo) lives only in the
@@ -30,6 +37,10 @@ services:
       - uploads:/app/uploads
     depends_on:
       - postgres
+
+networks:
+  osrm_net:
+    external: true
 
 volumes:
   pgdata:
