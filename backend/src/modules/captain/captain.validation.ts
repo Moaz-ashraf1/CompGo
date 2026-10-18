@@ -21,6 +21,8 @@ export const registerCaptainSchema = z.object({
 
   vehicleLicenseImage: z.string().min(1),
 
+  vehiclePhoto: z.string().min(1).optional(),
+
   vehicleNumber: z.string().min(2, "Vehicle number is required").max(50),
 
   vehicleType: z.enum(["MOTORCYCLE", "CAR", "BICYCLE"]),

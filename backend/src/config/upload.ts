@@ -34,6 +34,7 @@ export const captainDocumentsUpload = multer({
   { name: "nationalIdImage", maxCount: 1 },
   { name: "licenseImage", maxCount: 1 },
   { name: "vehicleLicenseImage", maxCount: 1 },
+  { name: "vehiclePhoto", maxCount: 1 },
 ]);
 
 /// Proof-of-payment screenshot a captain attaches when submitting a

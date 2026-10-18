@@ -29,5 +29,11 @@ export const attachCaptainDocuments = (
   req.body.licenseImage = `/uploads/captains/${licenseFile.filename}`;
   req.body.vehicleLicenseImage = `/uploads/captains/${vehicleLicenseFile.filename}`;
 
+  // Optional so already-installed app builds (which do not send it) can still register.
+  const vehiclePhotoFile = files?.vehiclePhoto?.[0];
+  if (vehiclePhotoFile) {
+    req.body.vehiclePhoto = `/uploads/captains/${vehiclePhotoFile.filename}`;
+  }
+
   next();
 };

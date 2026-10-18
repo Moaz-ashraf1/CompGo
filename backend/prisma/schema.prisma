@@ -100,6 +100,9 @@ model Captain {
   // required at the API layer for every new registration (see
   // captain.validation.ts -> registerCaptainSchema).
   vehicleLicenseImage String?
+  // Photo of the car itself (shown to clients and in the dashboard).
+  // Nullable: older captains have none.
+  vehiclePhoto        String?
   vehicleNumber       String        @unique
   vehicleType         VehicleType
   vehicleModel        String
