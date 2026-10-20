@@ -3,6 +3,7 @@ import { Server as SocketIOServer } from "socket.io";
 import { verifyAccessToken } from "../utils/jwt.js";
 import { logger } from "../config/logger.js";
 import { isAccountBlocked } from "../utils/accountStatus.js";
+import { prisma } from "../config/prisma.js";
 
 let io: SocketIOServer | null = null;
 
@@ -51,9 +52,21 @@ export const initSocket = (httpServer: HttpServer) => {
     }
   });
 
-  io.on("connection", (socket) => {
+  io.on("connection", async (socket) => {
     const userId = socket.data.userId as string;
     const role = socket.data.role as string;
+
+    if (role === "ADMIN") {
+      // Dashboard admins: only those who may see captains get captain events.
+      const admin = await prisma.admin.findUnique({
+        where: { id: userId },
+        select: { isSuper: true, permissions: true },
+      });
+      const perms = (admin?.permissions ?? {}) as Record<string, string>;
+      if (admin && (admin.isSuper || perms["captains"])) {
+        socket.join("admins:captains");
+      }
+    }
 
     if (role === "CLIENT") {
       socket.join(`client:${userId}`);
@@ -85,6 +98,11 @@ export const emitToCaptain = (
   payload: unknown,
 ) => {
   io?.to(`captain:${captainId}`).emit(event, payload);
+};
+
+/// Dashboard admins allowed to see captains (see the connection handler).
+export const emitToCaptainAdmins = (event: string, payload: unknown) => {
+  io?.to("admins:captains").emit(event, payload);
 };
 
 export const emitToCaptainsBroadcast = (event: string, payload: unknown) => {

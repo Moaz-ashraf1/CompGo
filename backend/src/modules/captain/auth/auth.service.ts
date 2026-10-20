@@ -3,6 +3,7 @@ import type {
   RegisterCaptainDTO,
 } from "./../captain.validation.js";
 import * as authRepo from "./auth.repository.js";
+import { emitToCaptainAdmins } from "../../../realtime/socket.js";
 import * as authService from "../../auth/auth.service.js";
 import { comparePassword, hashPassword } from "../../../utils/hash.js";
 import {
@@ -41,6 +42,14 @@ export const registerCaptain = async (data: RegisterCaptainDTO) => {
     vehicleNumber: data.vehicleNumber,
     vehicleType: data.vehicleType,
     vehicleModel: data.vehicleModel,
+  });
+
+  // Live badge + toast in the dashboard's pending-captains menu.
+  emitToCaptainAdmins("captain:registered", {
+    id: captain.id,
+    name: captain.name,
+    phone: captain.phone,
+    createdAt: captain.createdAt,
   });
 
   return {

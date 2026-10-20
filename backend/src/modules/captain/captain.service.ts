@@ -14,6 +14,7 @@ import {
 import { comparePassword, hashPassword } from "../../utils/hash.js";
 import * as tripService from "../trip/trip.service.js";
 import { lockOutAccount } from "../auth/lockout.js";
+import { emitToCaptainAdmins } from "../../realtime/socket.js";
 
 export const getMe = async (captainId: string) => {
   const captain = await captainRepo.findCaptainById(captainId);
@@ -133,6 +134,7 @@ export const blockCaptain = async (id: string) => {
     CaptainStatus.BLOCKED,
   );
   await lockOutAccount("CAPTAIN", id);
+  emitToCaptainAdmins("captain:pending-changed", {});
   return withSettlementInfo(blocked);
 };
 
@@ -147,9 +149,9 @@ export const unblockCaptain = async (id: string) => {
     return withSettlementInfo(captain);
   }
 
-  return withSettlementInfo(
-    await captainRepo.updateCaptainStatus(id, CaptainStatus.ACTIVE),
-  );
+  const activated = await captainRepo.updateCaptainStatus(id, CaptainStatus.ACTIVE);
+  emitToCaptainAdmins("captain:pending-changed", {});
+  return withSettlementInfo(activated);
 };
 
 export const resetAmountDue = async (

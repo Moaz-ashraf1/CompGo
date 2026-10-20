@@ -5,6 +5,7 @@ import { prisma } from "../../config/prisma.js";
 import { logger } from "../../config/logger.js";
 import { AppException } from "../../exceptions/AppException.js";
 import { lockOutAccount } from "../auth/lockout.js";
+import { emitToCaptainAdmins } from "../../realtime/socket.js";
 
 export type AccountKind = "CAPTAIN" | "CLIENT";
 
@@ -187,6 +188,8 @@ export const deleteAccount = async (
   });
 
   await Promise.all([...account.files, ...settlementFiles].map(removeUploadedFile));
+
+  if (kind === "CAPTAIN") emitToCaptainAdmins("captain:pending-changed", {});
 
   logger.warn("Account permanently deleted by admin", {
     kind,
