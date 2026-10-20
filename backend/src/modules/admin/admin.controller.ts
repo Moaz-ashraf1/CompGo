@@ -8,6 +8,7 @@ import type { TripStatus, TripType } from "../../generated/prisma/client.js";
 import { parseDateParam } from "../../utils/parseDateParam.js";
 import { getCaptainWalletSummary as getCaptainWalletSummaryService } from "../wallet/summary.service.js";
 import { cancelTransfer, recordTransfer } from "../wallet/transfers.service.js";
+import { deleteAccount, getDeletionPreview, type AccountKind } from "./accountDeletion.service.js";
 
 export const updateCaptainPhone = asyncHandler(
   async (req: Request, res: Response) => {
@@ -158,3 +159,20 @@ export const cancelCaptainTransfer = asyncHandler(
     res.status(StatusCodes.OK).json({ status: "success" });
   },
 );
+
+export const getAccountDeletionPreview = (kind: AccountKind) =>
+  asyncHandler(async (req: Request, res: Response) => {
+    const preview = await getDeletionPreview(kind, req.params.id as string);
+    res.status(StatusCodes.OK).json({ status: "success", data: preview });
+  });
+
+export const deleteAccountPermanently = (kind: AccountKind) =>
+  asyncHandler(async (req: Request, res: Response) => {
+    await deleteAccount(
+      kind,
+      req.params.id as string,
+      String(req.body?.confirmPhone ?? ""),
+      req.user!.id,
+    );
+    res.status(StatusCodes.OK).json({ status: "success" });
+  });

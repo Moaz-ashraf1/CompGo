@@ -220,6 +220,27 @@ router.patch(
   validate(resetPasswordSchema),
   adminController.resetCaptainPassword,
 );
+// Permanent deletion of an account and all its data - super admins only.
+router.get(
+  "/captains/:id/deletion-preview",
+  requireSuperAdmin,
+  adminController.getAccountDeletionPreview("CAPTAIN"),
+);
+router.delete(
+  "/captains/:id",
+  requireSuperAdmin,
+  adminController.deleteAccountPermanently("CAPTAIN"),
+);
+router.get(
+  "/clients/:id/deletion-preview",
+  requireSuperAdmin,
+  adminController.getAccountDeletionPreview("CLIENT"),
+);
+router.delete(
+  "/clients/:id",
+  requireSuperAdmin,
+  adminController.deleteAccountPermanently("CLIENT"),
+);
 router.get(
   "/captains/:id/wallet-summary",
   perm("wallet", "VIEW"),
