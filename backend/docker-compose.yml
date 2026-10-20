@@ -24,6 +24,9 @@ services:
       # distance = driving distance like Google Maps. Falls back to
       # straight-line distance if it is unreachable.
       OSRM_URL: http://osrm:5000
+      # Optional: when set, trip distance comes from Google (see roadDistance.ts).
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      GOOGLE_ROUTES_DAILY_LIMIT: ${GOOGLE_ROUTES_DAILY_LIMIT:-300}
     networks:
       - default
       - osrm_net

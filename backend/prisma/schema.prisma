@@ -602,3 +602,13 @@ model FamilyLink {
   @@unique([requesterId, targetId])
   @@index([targetId])
 }
+
+/// Per-day counter for paid third-party API calls (see utils/dailyLimit.ts),
+/// so a spending cap holds even across restarts and deploys.
+model ApiUsage {
+  key   String
+  day   String
+  count Int    @default(0)
+
+  @@id([key, day])
+}
