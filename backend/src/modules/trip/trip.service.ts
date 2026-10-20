@@ -36,6 +36,7 @@ import {
   NoCompoundBoundaryError,
   NoPricingConfigError,
   FemaleCaptainOnlyRestrictedError,
+  AirportOutsideCompoundError,
   TripRestrictedToFemaleCaptainsError,
   TripPlaceNotFoundError,
   ClientHasActiveTripError,
@@ -108,6 +109,15 @@ const resolveIsInsideCompound = async (lat: number, lng: number) => {
 
   const points = boundary.points as { lat: number; lng: number }[];
   return isPointInsidePolygon({ lat, lng }, points);
+};
+
+/// For the client app: is this location inside the compound? Used to hide
+/// the airport service for clients who are outside it. With no boundary set
+/// up yet nothing is hidden (requesting a trip would fail anyway).
+export const checkLocation = async (lat: number, lng: number) => {
+  const boundary = await boundaryRepo.findBoundary();
+  if (!boundary) return { isInsideCompound: true };
+  return { isInsideCompound: await resolveIsInsideCompound(lat, lng) };
 };
 
 const calculatePrice = async (params: {
@@ -259,6 +269,17 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
     data.pickupLat,
     data.pickupLng,
   );
+
+  // Airport trips run between the compound and the airport, so one end has to
+  // be inside it: the pickup ("to the airport") or the drop-off ("from the
+  // airport" - the pickup there is the airport itself).
+  if (data.type === "AIRPORT" && !isInsideCompound) {
+    const dropoffInside =
+      data.dropoffLat !== undefined && data.dropoffLng !== undefined
+        ? await resolveIsInsideCompound(data.dropoffLat, data.dropoffLng)
+        : false;
+    if (!dropoffInside) throw new AirportOutsideCompoundError();
+  }
 
   const hasDropoff =
     data.dropoffLat !== undefined && data.dropoffLng !== undefined;

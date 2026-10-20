@@ -60,6 +60,16 @@ export class FemaleCaptainOnlyRestrictedError extends AppException {
   }
 }
 
+/// Airport trips are only offered to clients inside the compound.
+export class AirportOutsideCompoundError extends AppException {
+  constructor() {
+    super(
+      "رحلات المطار متاحة للي جوا الكومباوند بس",
+      StatusCodes.FORBIDDEN,
+    );
+  }
+}
+
 export class TripRestrictedToFemaleCaptainsError extends AppException {
   constructor() {
     super(

@@ -34,3 +34,14 @@ export const rateTrip = asyncHandler(async (req: Request, res: Response) => {
   const trip = await tripService.rateTrip(req.user!.id, id as string, req.body);
   res.status(StatusCodes.OK).json({ status: "success", data: { trip } });
 });
+
+export const checkLocation = asyncHandler(async (req: Request, res: Response) => {
+  const lat = Number(req.query.lat);
+  const lng = Number(req.query.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+    res.status(StatusCodes.BAD_REQUEST).json({ status: "fail", message: "lat and lng are required" });
+    return;
+  }
+  const result = await tripService.checkLocation(lat, lng);
+  res.status(StatusCodes.OK).json({ status: "success", data: result });
+});
