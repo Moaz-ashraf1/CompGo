@@ -1,3 +1,5 @@
+import * as accountController from "../account/account.controller.js";
+import { deleteOwnAccountSchema } from "../account/account.validation.js";
 import { Router } from "express";
 import * as captainController from "./captain.controller.js";
 import {
@@ -38,6 +40,13 @@ router.patch(
   authorize("CAPTAIN"),
   validate(updateCaptainProfileSchema),
   captainController.updateMe,
+);
+router.delete(
+  "/me",
+  authenticate,
+  authorize("CAPTAIN"),
+  validate(deleteOwnAccountSchema),
+  accountController.deleteMyCaptainAccount,
 );
 router.get(
   "/wallet",

@@ -1,6 +1,8 @@
 import { Router } from "express";
 import authRouter from "./auth/auth.route.js";
 import * as clientController from "./client.controller.js";
+import * as accountController from "../account/account.controller.js";
+import { deleteOwnAccountSchema } from "../account/account.validation.js";
 import { authenticate, authorize } from "../../middlewares/auth.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import {
@@ -87,6 +89,13 @@ router.patch(
   authorize("CLIENT"),
   validate(updateClientProfileSchema),
   clientController.updateMe,
+);
+router.delete(
+  "/me",
+  authenticate,
+  authorize("CLIENT"),
+  validate(deleteOwnAccountSchema),
+  accountController.deleteMyClientAccount,
 );
 router.patch(
   "/me/password",

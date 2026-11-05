@@ -5,6 +5,7 @@ import { prisma } from "../../config/prisma.js";
 import { logger } from "../../config/logger.js";
 import { AppException } from "../../exceptions/AppException.js";
 import { lockOutAccount } from "../auth/lockout.js";
+import { comparePassword } from "../../utils/hash.js";
 import { emitToCaptainAdmins } from "../../realtime/socket.js";
 
 export type AccountKind = "CAPTAIN" | "CLIENT";
@@ -198,4 +199,38 @@ export const deleteAccount = async (
     adminId,
     trips: tripIds.length,
   });
+};
+
+/// A client/captain deleting their own account from the app. Asks for the
+/// password again, and (since the amount they owe is a real debt) a captain
+/// with unpaid dues has to settle them first. A wrong password is a 400, never
+/// a 401 - a 401 would make the app think the session expired and log out.
+export const deleteOwnAccount = async (
+  kind: AccountKind,
+  id: string,
+  password: string,
+) => {
+  const account =
+    kind === "CAPTAIN"
+      ? await prisma.captain.findUnique({
+          where: { id },
+          select: { phone: true, passwordHash: true, amountDue: true },
+        })
+      : await prisma.client.findUnique({
+          where: { id },
+          select: { phone: true, passwordHash: true },
+        });
+  if (!account) throw notFound();
+
+  if (!(await comparePassword(password, account.passwordHash))) {
+    throw new AppException("كلمة المرور غير صحيحة", StatusCodes.BAD_REQUEST);
+  }
+  if ("amountDue" in account && Number(account.amountDue) > 0) {
+    throw new AppException(
+      "عليك مستحقات للشركة، سدّدها الأول وبعدين تقدر تحذف حسابك",
+      StatusCodes.CONFLICT,
+    );
+  }
+
+  await deleteAccount(kind, id, account.phone, `self:${id}`);
 };
