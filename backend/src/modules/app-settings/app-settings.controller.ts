@@ -26,3 +26,18 @@ export const updateSettings = asyncHandler(
     });
   },
 );
+
+/// Public on purpose (the website's "delete my account" page needs it): only
+/// the support contact details, never the rest of the settings.
+export const getSupportContact = asyncHandler(
+  async (_req: Request, res: Response) => {
+    const settings = await appSettingsService.getSettings();
+    res.status(StatusCodes.OK).json({
+      status: "success",
+      data: {
+        supportWhatsappNumber: settings?.supportWhatsappNumber ?? null,
+        supportEmail: settings?.supportEmail ?? null,
+      },
+    });
+  },
+);
