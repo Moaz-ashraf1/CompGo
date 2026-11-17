@@ -1,4 +1,5 @@
 import { prisma } from "../../config/prisma.js";
+import type { Prisma } from "../../generated/prisma/client.js";
 import { captainSafeSelect } from "../captain/captain.repository.js";
 
 export const findCaptainById = async (id: string) => {
@@ -17,6 +18,21 @@ export const updateCaptainPhone = async (id: string, phone: string) => {
   return prisma.captain.update({
     where: { id },
     data: { phone },
+    select: captainSafeSelect,
+  });
+};
+
+export const findCaptainByVehicleNumber = async (vehicleNumber: string) => {
+  return prisma.captain.findUnique({ where: { vehicleNumber } });
+};
+
+export const updateCaptainDetails = async (
+  id: string,
+  data: Prisma.CaptainUpdateInput,
+) => {
+  return prisma.captain.update({
+    where: { id },
+    data,
     select: captainSafeSelect,
   });
 };

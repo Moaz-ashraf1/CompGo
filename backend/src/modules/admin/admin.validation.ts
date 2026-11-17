@@ -6,6 +6,34 @@ export const updateCaptainPhoneSchema = z.object({
     .regex(/^01[0125][0-9]{8}$/, "Invalid Egyptian phone number"),
 });
 
+/// Admin edit of any captain detail (pending or already approved). Sent as
+/// multipart/form-data so images can be replaced in the same request; every
+/// field is optional and only the ones present are changed.
+export const updateCaptainDetailsSchema = z
+  .object({
+    name: z.string().trim().min(2).max(100).optional(),
+    phone: z
+      .string()
+      .regex(/^01[0125][0-9]{8}$/, "Invalid Egyptian phone number")
+      .optional(),
+    gender: z.enum(["MALE", "FEMALE"]).optional(),
+    vehicleNumber: z.string().trim().min(2).max(50).optional(),
+    vehicleType: z.enum(["MOTORCYCLE", "CAR", "BICYCLE"]).optional(),
+    vehicleModel: z.string().trim().min(2).max(100).optional(),
+    profilePhoto: z.string().min(1).optional(),
+    nationalIdImage: z.string().min(1).optional(),
+    licenseImage: z.string().min(1).optional(),
+    vehicleLicenseImage: z.string().min(1).optional(),
+    vehiclePhoto: z.string().min(1).optional(),
+  })
+  .refine((d) => Object.values(d).some((v) => v !== undefined), {
+    message: "At least one field must be provided",
+  });
+
+export type UpdateCaptainDetailsDTO = z.infer<
+  typeof updateCaptainDetailsSchema
+>;
+
 export const resetPasswordSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
 });

@@ -37,6 +37,10 @@ export const captainDocumentsUpload = multer({
   { name: "vehiclePhoto", maxCount: 1 },
 ]);
 
+/// Admin edit of an existing captain: same fields as registration, but every
+/// file is optional (only the ones the admin replaces are sent).
+export const captainDocumentsEditUpload = captainDocumentsUpload;
+
 /// Proof-of-payment screenshot a captain attaches when submitting a
 /// settlement (see settlement.service.ts -> submitSettlement).
 export const settlementScreenshotUpload = multer({

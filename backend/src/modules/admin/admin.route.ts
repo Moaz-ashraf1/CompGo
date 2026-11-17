@@ -6,6 +6,7 @@ import * as bonusTierController from "../bonus-tier/bonus-tier.controller.js";
 import * as settlementController from "../settlement/settlement.controller.js";
 import {
   updateCaptainPhoneSchema,
+  updateCaptainDetailsSchema,
   resetPasswordSchema,
   resetClientPasswordByPhoneSchema,
   adjustCaptainBalanceSchema,
@@ -26,6 +27,8 @@ import * as familyController from "../family/family.controller.js";
 import * as legalController from "../legal/legal.controller.js";
 import { updateLegalPageSchema } from "../legal/legal.validation.js";
 import { rejectSettlementSubmissionSchema } from "../settlement/settlement.validation.js";
+import { captainDocumentsEditUpload } from "../../config/upload.js";
+import { attachCaptainEditDocuments } from "../../middlewares/attachCaptainEditDocuments.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import { authenticate, authorize } from "../../middlewares/auth.js";
 import authRouter from "./auth/auth.route.js";
@@ -207,6 +210,14 @@ router.get(
   "/captains/:id",
   perm("captains", "VIEW"),
   adminController.getCaptainDetail,
+);
+router.patch(
+  "/captains/:id",
+  perm("captains", "EDIT"),
+  captainDocumentsEditUpload,
+  attachCaptainEditDocuments,
+  validate(updateCaptainDetailsSchema),
+  adminController.updateCaptainDetails,
 );
 router.patch(
   "/captains/:id/phone",

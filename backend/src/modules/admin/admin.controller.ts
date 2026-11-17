@@ -25,6 +25,18 @@ export const updateCaptainPhone = asyncHandler(
   },
 );
 
+export const updateCaptainDetails = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const captain = await adminService.updateCaptainDetails(
+      id as string,
+      req.body,
+    );
+
+    res.status(StatusCodes.OK).json({ status: "success", data: { captain } });
+  },
+);
+
 export const resetCaptainPassword = asyncHandler(
   async (req: Request, res: Response) => {
     const { id } = req.params;

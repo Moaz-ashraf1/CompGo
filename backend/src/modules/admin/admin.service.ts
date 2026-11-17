@@ -10,6 +10,7 @@ import { hashPassword } from "../../utils/hash.js";
 import {
   CaptainNotFoundError,
   PhoneAlreadyInUseError,
+  VehicleNumberAlreadyInUseError,
 } from "../../exceptions/captain.exceptions.js";
 import { ClientNotFoundError } from "../../exceptions/client.exceptions.js";
 import { TripNotFoundError } from "../../exceptions/trip.exceptions.js";
@@ -20,6 +21,7 @@ import type {
 } from "../../generated/prisma/client.js";
 import type {
   UpdateCaptainPhoneDTO,
+  UpdateCaptainDetailsDTO,
   ResetPasswordDTO,
   AdjustCaptainBalanceDTO,
 } from "./admin.validation.js";
@@ -37,6 +39,41 @@ export const updateCaptainPhone = async (
   }
 
   return adminRepo.updateCaptainPhone(captainId, data.phone);
+};
+
+/// Full admin edit of a captain (works for PENDING, ACTIVE and BLOCKED).
+/// Phone / vehicle number stay unique; changing the phone also revokes the
+/// captain's sessions so they log in again with the new number.
+export const updateCaptainDetails = async (
+  captainId: string,
+  data: UpdateCaptainDetailsDTO,
+) => {
+  const captain = await adminRepo.findCaptainById(captainId);
+  if (!captain) throw new CaptainNotFoundError();
+
+  if (data.phone !== undefined && data.phone !== captain.phone) {
+    const existing = await adminRepo.findCaptainByPhone(data.phone);
+    if (existing && existing.id !== captainId) {
+      throw new PhoneAlreadyInUseError();
+    }
+  }
+  if (
+    data.vehicleNumber !== undefined &&
+    data.vehicleNumber !== captain.vehicleNumber
+  ) {
+    const existing = await adminRepo.findCaptainByVehicleNumber(
+      data.vehicleNumber,
+    );
+    if (existing && existing.id !== captainId) {
+      throw new VehicleNumberAlreadyInUseError();
+    }
+  }
+
+  const updated = await adminRepo.updateCaptainDetails(captainId, data);
+  if (data.phone !== undefined && data.phone !== captain.phone) {
+    await authRepo.revokeAllByAccount(captainId);
+  }
+  return updated;
 };
 
 export const resetCaptainPassword = async (
