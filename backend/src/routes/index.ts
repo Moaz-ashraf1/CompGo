@@ -6,6 +6,7 @@ import pricingRoutes from "../modules/pricing/pricing.routes.js";
 import appSettingsRoutes from "../modules/app-settings/app-settings.routes.js";
 import * as legalController from "../modules/legal/legal.controller.js";
 import * as appSettingsController from "../modules/app-settings/app-settings.controller.js";
+import * as landingEvents from "../modules/landing-events/landing-events.js";
 import adminAuthRoutes from "../modules/admin/auth/auth.route.js";
 const router = Router();
 
@@ -17,6 +18,8 @@ router.use("/app-settings", appSettingsRoutes);
 router.use("/dashboard", adminAuthRoutes);
 // Public on purpose: the terms/privacy pages must be readable before login.
 router.get("/legal/:key", legalController.getPublic);
+// Public + anonymous: landing-page funnel counters.
+router.post("/landing-events", landingEvents.track);
 router.get("/support-contact", appSettingsController.getSupportContact);
 
 export default router;

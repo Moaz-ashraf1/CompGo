@@ -29,6 +29,7 @@ import { updateLegalPageSchema } from "../legal/legal.validation.js";
 import { rejectSettlementSubmissionSchema } from "../settlement/settlement.validation.js";
 import { captainDocumentsEditUpload } from "../../config/upload.js";
 import { attachCaptainEditDocuments } from "../../middlewares/attachCaptainEditDocuments.js";
+import * as landingEvents from "../landing-events/landing-events.js";
 import { validate } from "../../middlewares/validation.middleware.js";
 import { authenticate, authorize } from "../../middlewares/auth.js";
 import authRouter from "./auth/auth.route.js";
@@ -85,6 +86,11 @@ router.patch(
 );
 router.delete("/admins/:id", requireSuperAdmin, adminUsersController.remove);
 
+router.get(
+  "/landing-stats",
+  perm("reports", "VIEW"),
+  landingEvents.stats,
+);
 router.get(
   "/reports/overview",
   perm("reports", "VIEW"),

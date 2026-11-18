@@ -612,3 +612,14 @@ model ApiUsage {
 
   @@id([key, day])
 }
+
+/// Anonymous marketing-funnel events from the public landing pages (page
+/// views and store-button clicks), so ad traffic can be measured against
+/// installs/signups. No personal data is stored.
+model LandingEvent {
+  id        String   @id @default(uuid())
+  event     String
+  createdAt DateTime @default(now())
+
+  @@index([event, createdAt])
+}
