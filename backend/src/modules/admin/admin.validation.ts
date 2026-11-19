@@ -34,6 +34,23 @@ export type UpdateCaptainDetailsDTO = z.infer<
   typeof updateCaptainDetailsSchema
 >;
 
+/// Admin edit of a client's profile. Every field is optional; only the ones
+/// present are changed.
+export const updateClientDetailsSchema = z
+  .object({
+    name: z.string().trim().min(2).max(100).optional(),
+    phone: z
+      .string()
+      .regex(/^01[0125][0-9]{8}$/, "Invalid Egyptian phone number")
+      .optional(),
+    gender: z.enum(["MALE", "FEMALE"]).optional(),
+  })
+  .refine((d) => Object.values(d).some((v) => v !== undefined), {
+    message: "At least one field must be provided",
+  });
+
+export type UpdateClientDetailsDTO = z.infer<typeof updateClientDetailsSchema>;
+
 export const resetPasswordSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
 });

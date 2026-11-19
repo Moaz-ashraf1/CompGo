@@ -49,6 +49,18 @@ export const resetCaptainPassword = asyncHandler(
   },
 );
 
+export const updateClientDetails = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const client = await adminService.updateClientDetails(
+      id as string,
+      req.body,
+    );
+
+    res.status(StatusCodes.OK).json({ status: "success", data: { client } });
+  },
+);
+
 export const resetClientPassword = asyncHandler(
   async (req: Request, res: Response) => {
     const { phone, password } = req.body;

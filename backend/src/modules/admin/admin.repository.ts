@@ -51,6 +51,26 @@ export const updateClientPassword = async (
   return prisma.client.update({ where: { id }, data: { passwordHash } });
 };
 
+export const updateClientDetails = async (
+  id: string,
+  data: Prisma.ClientUpdateInput,
+) => {
+  return prisma.client.update({
+    where: { id },
+    data,
+    select: {
+      id: true,
+      name: true,
+      phone: true,
+      gender: true,
+      status: true,
+      tripNum: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+};
+
 export const findClientByPhone = async (phone: string) => {
   return prisma.client.findUnique({ where: { phone } });
 };

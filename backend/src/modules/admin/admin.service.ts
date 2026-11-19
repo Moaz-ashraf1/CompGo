@@ -22,6 +22,7 @@ import type {
 import type {
   UpdateCaptainPhoneDTO,
   UpdateCaptainDetailsDTO,
+  UpdateClientDetailsDTO,
   ResetPasswordDTO,
   AdjustCaptainBalanceDTO,
 } from "./admin.validation.js";
@@ -91,6 +92,29 @@ export const resetCaptainPassword = async (
 
   await authRepo.revokeAllByAccount(captainId);
 
+  return updated;
+};
+
+/// Admin edit of a client's name / phone / gender. Phone stays unique; a
+/// phone change also signs the client out so they log in with the new number.
+export const updateClientDetails = async (
+  clientId: string,
+  data: UpdateClientDetailsDTO,
+) => {
+  const client = await adminRepo.findClientById(clientId);
+  if (!client) throw new ClientNotFoundError();
+
+  if (data.phone !== undefined && data.phone !== client.phone) {
+    const existing = await adminRepo.findClientByPhone(data.phone);
+    if (existing && existing.id !== clientId) {
+      throw new PhoneAlreadyInUseError();
+    }
+  }
+
+  const updated = await adminRepo.updateClientDetails(clientId, data);
+  if (data.phone !== undefined && data.phone !== client.phone) {
+    await authRepo.revokeAllByAccount(clientId);
+  }
   return updated;
 };
 

@@ -7,6 +7,7 @@ import * as settlementController from "../settlement/settlement.controller.js";
 import {
   updateCaptainPhoneSchema,
   updateCaptainDetailsSchema,
+  updateClientDetailsSchema,
   resetPasswordSchema,
   resetClientPasswordByPhoneSchema,
   adjustCaptainBalanceSchema,
@@ -285,6 +286,13 @@ router.patch(
   perm("clients", "EDIT"),
   validate(resetClientPasswordByPhoneSchema),
   adminController.resetClientPassword,
+);
+// Declared after /clients/password so "password" is never read as an :id.
+router.patch(
+  "/clients/:id",
+  perm("clients", "EDIT"),
+  validate(updateClientDetailsSchema),
+  adminController.updateClientDetails,
 );
 
 export default router;
