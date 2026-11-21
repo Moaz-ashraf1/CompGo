@@ -265,20 +265,27 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
     }
   }
 
-  const isInsideCompound = await resolveIsInsideCompound(
+  const pickupInside = await resolveIsInsideCompound(
     data.pickupLat,
     data.pickupLng,
   );
+  const dropoffInside =
+    data.dropoffLat !== undefined && data.dropoffLng !== undefined
+      ? await resolveIsInsideCompound(data.dropoffLat, data.dropoffLng)
+      : null;
+
+  // A RIDE counts as "inside the compound" only when BOTH ends are inside it.
+  // Starting inside but ending outside is an outside trip (it leaves the
+  // boundary), so it gets the outside pricing/commission. Orders and airport
+  // trips keep going by the pickup point alone, as before.
+  const isInsideCompound =
+    data.type === "RIDE" ? pickupInside && dropoffInside !== false : pickupInside;
 
   // Airport trips run between the compound and the airport, so one end has to
   // be inside it: the pickup ("to the airport") or the drop-off ("from the
   // airport" - the pickup there is the airport itself).
-  if (data.type === "AIRPORT" && !isInsideCompound) {
-    const dropoffInside =
-      data.dropoffLat !== undefined && data.dropoffLng !== undefined
-        ? await resolveIsInsideCompound(data.dropoffLat, data.dropoffLng)
-        : false;
-    if (!dropoffInside) throw new AirportOutsideCompoundError();
+  if (data.type === "AIRPORT" && !pickupInside && !dropoffInside) {
+    throw new AirportOutsideCompoundError();
   }
 
   const hasDropoff =
