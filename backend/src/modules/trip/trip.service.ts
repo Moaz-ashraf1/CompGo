@@ -276,10 +276,23 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
 
   // A RIDE counts as "inside the compound" only when BOTH ends are inside it.
   // Starting inside but ending outside is an outside trip (it leaves the
-  // boundary), so it gets the outside pricing/commission. Orders and airport
-  // trips keep going by the pickup point alone, as before.
-  const isInsideCompound =
-    data.type === "RIDE" ? pickupInside && dropoffInside !== false : pickupInside;
+  // boundary), so it gets the outside pricing/commission. Airport trips keep
+  // going by the pickup point alone.
+  // An ORDER is judged by where its places actually are: every pickup place
+  // and the delivery address must be inside. Orders without place locations
+  // (older app builds) keep going by the pickup point.
+  const placesWithLocation = (data.places ?? []).filter(
+    (p) => p.lat !== undefined && p.lng !== undefined,
+  );
+  let isInsideCompound = pickupInside;
+  if (data.type === "RIDE") {
+    isInsideCompound = pickupInside && dropoffInside !== false;
+  } else if (data.type === "ORDER" && placesWithLocation.length > 0) {
+    const placesInside = await Promise.all(
+      placesWithLocation.map((p) => resolveIsInsideCompound(p.lat!, p.lng!)),
+    );
+    isInsideCompound = placesInside.every(Boolean) && dropoffInside !== false;
+  }
 
   // Airport trips run between the compound and the airport, so one end has to
   // be inside it: the pickup ("to the airport") or the drop-off ("from the
@@ -351,6 +364,8 @@ export const requestTrip = async (clientId: string, data: CreateTripDTO) => {
               create: data.places.map((p, index) => ({
                 name: p.name,
                 details: p.details ?? null,
+                lat: p.lat ?? null,
+                lng: p.lng ?? null,
                 order: index,
               })),
             },

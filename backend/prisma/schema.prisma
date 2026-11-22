@@ -541,6 +541,11 @@ model TripPlace {
   trip        Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
   name        String
   details     String?
+  // Where the place is (picked on the map by the client). Null on trips from
+  // older app builds, which only sent a name - pricing then falls back to the
+  // trip's pickup point.
+  lat         Decimal?  @db.Decimal(10, 7)
+  lng         Decimal?  @db.Decimal(10, 7)
   order       Int
   collected   Boolean   @default(false)
   collectedAt DateTime?

@@ -37,10 +37,18 @@ export const createTripSchema = z
     // array's length as the source of truth once given.
     places: z
       .array(
-        z.object({
-          name: z.string().min(1).max(100),
-          details: z.string().max(200).optional(),
-        }),
+        z
+          .object({
+            name: z.string().min(1).max(100),
+            details: z.string().max(200).optional(),
+            // Where the place is on the map (picked or nearest-point). Both or
+            // neither; drives the inside/outside-compound pricing of an ORDER.
+            lat: z.number().min(-90).max(90).optional(),
+            lng: z.number().min(-180).max(180).optional(),
+          })
+          .refine((p) => (p.lat === undefined) === (p.lng === undefined), {
+            message: "place lat and lng must be provided together",
+          }),
       )
       .min(1)
       .max(10)
