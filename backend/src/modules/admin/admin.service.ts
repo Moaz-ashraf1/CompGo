@@ -175,6 +175,7 @@ export const getTrips = async (params: {
   to?: Date;
   search?: string;
   page?: number;
+  all?: boolean;
 }) => {
   const trips = await tripService.getAllTrips({
     status: params.status,
@@ -197,6 +198,15 @@ export const getTrips = async (params: {
         );
       })
     : trips;
+
+  if (params.all) {
+    return {
+      trips: filtered,
+      total: filtered.length,
+      page: 1,
+      pageSize: filtered.length,
+    };
+  }
 
   const page = Math.max(1, params.page ?? 1);
   const start = (page - 1) * TRIPS_PAGE_SIZE;

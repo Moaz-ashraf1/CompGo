@@ -95,12 +95,13 @@ export const adjustCaptainBalance = asyncHandler(
 );
 
 export const getTrips = asyncHandler(async (req: Request, res: Response) => {
-  const { status, type, isInsideCompound, search, page } = req.query as {
+  const { status, type, isInsideCompound, search, page, all } = req.query as {
     status?: TripStatus;
     type?: TripType;
     isInsideCompound?: string;
     search?: string;
     page?: string;
+    all?: string;
   };
   const result = await adminService.getTrips({
     status,
@@ -111,6 +112,8 @@ export const getTrips = asyncHandler(async (req: Request, res: Response) => {
     to: parseDateParam(req.query.to, true),
     search,
     page: page ? Number(page) : undefined,
+    // ?all=true: every matching trip in one response (the dashboard's Excel export).
+    all: all === "true",
   });
 
   res.status(StatusCodes.OK).json({ status: "success", data: result });
