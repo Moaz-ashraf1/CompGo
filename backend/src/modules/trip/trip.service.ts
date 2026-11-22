@@ -19,7 +19,7 @@ import * as benefits from "../offers/benefits.service.js";
 import { notifyWatchers } from "../family/family.service.js";
 import { splitFare, tripCompanyShare, type CommissionCategory } from "../../utils/commission.js";
 import { isPointInsidePolygon, haversineDistanceKm } from "../../utils/geo.js";
-import { getDrivingDistanceKm } from "../../utils/roadDistance.js";
+import { getDrivingDistanceKm, getDrivingRoute } from "../../utils/roadDistance.js";
 import { TripStatus, TripType } from "../../generated/prisma/client.js";
 import type {
   CreateTripDTO,
@@ -394,6 +394,42 @@ export const getClientTripById = async (clientId: string, tripId: string) => {
   if (!trip) throw new TripNotFoundError();
   if (trip.clientId !== clientId) throw new NotYourTripError();
   return attachCaptainInfoOne(trip);
+};
+
+/// Road line + ETA for the client's live tracking map. While the captain is
+/// coming (ACCEPTED) it runs captain -> pickup; once the ride has started
+/// (IN_PROGRESS) it runs captain -> drop-off. Anything else (or no captain
+/// position / drop-off yet) has no route to show: `route` is null.
+export const getClientTripRoute = async (clientId: string, tripId: string) => {
+  const trip = await getClientTripById(clientId, tripId);
+  const captain = trip.captain;
+
+  let phase: "TO_PICKUP" | "TO_DROPOFF" | null = null;
+  let target: { lat: number; lng: number } | null = null;
+  if (trip.status === TripStatus.ACCEPTED) {
+    phase = "TO_PICKUP";
+    target = { lat: Number(trip.pickupLat), lng: Number(trip.pickupLng) };
+  } else if (trip.status === TripStatus.IN_PROGRESS && trip.dropoffLat !== null) {
+    phase = "TO_DROPOFF";
+    target = { lat: Number(trip.dropoffLat), lng: Number(trip.dropoffLng) };
+  }
+
+  if (
+    !phase ||
+    !target ||
+    captain?.lastLat === null ||
+    captain?.lastLat === undefined ||
+    captain.lastLng === null ||
+    captain.lastLng === undefined
+  ) {
+    return { status: trip.status, phase, route: null };
+  }
+
+  const route = await getDrivingRoute(
+    { lat: Number(captain.lastLat), lng: Number(captain.lastLng) },
+    target,
+  );
+  return { status: trip.status, phase, route };
 };
 
 export const rateTrip = async (

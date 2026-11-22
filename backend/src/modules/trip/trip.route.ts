@@ -19,6 +19,7 @@ router.get("/", tripController.getMyTrips);
 // Before "/:id" so "location-check" is not read as a trip id.
 router.get("/location-check", tripController.checkLocation);
 router.get("/:id", tripController.getTripById);
+router.get("/:id/route", tripController.getTripRoute);
 router.patch(
   "/:id/cancel",
   validate(cancelTripSchema),
