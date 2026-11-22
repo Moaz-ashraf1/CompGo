@@ -149,7 +149,13 @@ export const unblockCaptain = async (id: string) => {
     return withSettlementInfo(captain);
   }
 
-  const activated = await captainRepo.updateCaptainStatus(id, CaptainStatus.ACTIVE);
+  // Approving a new (PENDING) captain also turns on the auto-block for late
+  // settlement (3 days by default); unblocking an existing one leaves the
+  // admin's settlement settings alone.
+  const activated =
+    captain.status === CaptainStatus.PENDING
+      ? await captainRepo.approvePendingCaptain(id, captain.settlementCycleDays)
+      : await captainRepo.updateCaptainStatus(id, CaptainStatus.ACTIVE);
   emitToCaptainAdmins("captain:pending-changed", {});
   return withSettlementInfo(activated);
 };

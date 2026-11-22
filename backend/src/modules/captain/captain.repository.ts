@@ -145,6 +145,8 @@ export const findCaptainsPublicByIds = async (ids: string[]) => {
   });
 };
 
+export const DEFAULT_SETTLEMENT_CYCLE_DAYS = 3;
+
 export const updateCaptainStatus = async (
   id: string,
   status: CaptainStatus,
@@ -171,6 +173,24 @@ export const resetCaptainAmountDue = async (id: string) => {
       // Captain.settlementCycleDays for how this feeds the next-due
       // calculation in captain.service.ts -> getSettlementInfo.
       lastSettledAt: new Date(),
+    },
+    select: captainSafeSelect,
+  });
+};
+
+/// First approval of a signed-up captain: activates them and switches on the
+/// automatic block for late settlement from day one (default 3 days). A cycle
+/// the admin already set while the captain was pending is kept.
+export const approvePendingCaptain = async (
+  id: string,
+  currentCycleDays: number | null,
+) => {
+  return prisma.captain.update({
+    where: { id },
+    data: {
+      status: "ACTIVE",
+      settlementCycleDays: currentCycleDays ?? DEFAULT_SETTLEMENT_CYCLE_DAYS,
+      autoBlockOnOverdue: true,
     },
     select: captainSafeSelect,
   });
