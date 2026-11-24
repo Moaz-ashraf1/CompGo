@@ -234,3 +234,99 @@ export const deleteOwnAccount = async (
 
   await deleteAccount(kind, id, account.phone, `self:${id}`);
 };
+
+export interface BulkDeleteResult {
+  deleted: number;
+  /** ids that could not be deleted, with the reason in plain Arabic */
+  failed: { id: string; reason: string }[];
+}
+
+/// Permanently deletes finished trips (COMPLETED / CANCELLED) and everything
+/// hanging off them. Trips still in progress are skipped, never deleted - the
+/// client or captain on the other end would be stranded. Reports, commissions
+/// and captain dues are NOT recalculated: they simply no longer include
+/// these trips.
+export const bulkDeleteTrips = async (
+  ids: string[],
+  adminId: string,
+): Promise<BulkDeleteResult> => {
+  const unique = [...new Set(ids)];
+  const trips = await prisma.trip.findMany({
+    where: { id: { in: unique } },
+    select: { id: true, status: true },
+  });
+  const found = new Set(trips.map((t) => t.id));
+  const failed: BulkDeleteResult["failed"] = unique
+    .filter((id) => !found.has(id))
+    .map((id) => ({ id, reason: "الرحلة مش موجودة" }));
+
+  const deletable: string[] = [];
+  for (const t of trips) {
+    if ((ACTIVE_STATUSES as readonly string[]).includes(t.status)) {
+      failed.push({ id: t.id, reason: "الرحلة شغالة دلوقتي" });
+    } else {
+      deletable.push(t.id);
+    }
+  }
+
+  if (deletable.length > 0) {
+    await prisma.$transaction(async (tx) => {
+      // Promo codes: give back the uses these trips consumed.
+      const redemptions = await tx.promoRedemption.findMany({
+        where: { tripId: { in: deletable } },
+        select: { id: true, promoCodeId: true },
+      });
+      const perCode = new Map<string, number>();
+      for (const r of redemptions) {
+        perCode.set(r.promoCodeId, (perCode.get(r.promoCodeId) ?? 0) + 1);
+      }
+      for (const [promoCodeId, n] of perCode) {
+        await tx.promoCode.update({
+          where: { id: promoCodeId },
+          data: { usedCount: { decrement: n } },
+        });
+      }
+      await tx.promoRedemption.deleteMany({
+        where: { id: { in: redemptions.map((r) => r.id) } },
+      });
+      await tx.message.deleteMany({ where: { tripId: { in: deletable } } });
+      await tx.clientCreditTransaction.updateMany({
+        where: { tripId: { in: deletable } },
+        data: { tripId: null },
+      });
+      await tx.trip.deleteMany({ where: { id: { in: deletable } } }); // places cascade
+    });
+    logger.warn("Trips permanently deleted by admin (bulk)", {
+      adminId,
+      count: deletable.length,
+    });
+  }
+
+  return { deleted: deletable.length, failed };
+};
+
+/// Permanently deletes several captains or clients, one at a time (each one
+/// is its own transaction, so a single failure - e.g. a trip in progress -
+/// does not undo the others). The bulk confirmation replaces the per-account
+/// phone retype.
+export const bulkDeleteAccounts = async (
+  kind: AccountKind,
+  ids: string[],
+  adminId: string,
+): Promise<BulkDeleteResult> => {
+  const failed: BulkDeleteResult["failed"] = [];
+  let deleted = 0;
+  for (const id of [...new Set(ids)]) {
+    try {
+      const account = await find(kind, id);
+      await deleteAccount(kind, id, account.phone, adminId);
+      deleted += 1;
+    } catch (err) {
+      failed.push({
+        id,
+        reason: err instanceof AppException ? err.message : "حصل خطأ غير متوقع",
+      });
+    }
+  }
+  return { deleted, failed };
+};

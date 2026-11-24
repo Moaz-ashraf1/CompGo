@@ -12,6 +12,8 @@ import {
   resetClientPasswordByPhoneSchema,
   adjustCaptainBalanceSchema,
   recordCaptainTransferSchema,
+  bulkDeleteTripsSchema,
+  bulkDeleteAccountsSchema,
 } from "./admin.validation.js";
 import {
   createBonusTierSchema,
@@ -258,6 +260,25 @@ router.delete(
   "/clients/:id",
   requireSuperAdmin,
   adminController.deleteAccountPermanently("CLIENT"),
+);
+// Bulk permanent deletion from the dashboard's multi-select - super admins only.
+router.post(
+  "/trips/bulk-delete",
+  requireSuperAdmin,
+  validate(bulkDeleteTripsSchema),
+  adminController.bulkDeleteTripsHandler,
+);
+router.post(
+  "/captains/bulk-delete",
+  requireSuperAdmin,
+  validate(bulkDeleteAccountsSchema),
+  adminController.bulkDeleteAccountsHandler("CAPTAIN"),
+);
+router.post(
+  "/clients/bulk-delete",
+  requireSuperAdmin,
+  validate(bulkDeleteAccountsSchema),
+  adminController.bulkDeleteAccountsHandler("CLIENT"),
 );
 router.get(
   "/captains/:id/wallet-summary",

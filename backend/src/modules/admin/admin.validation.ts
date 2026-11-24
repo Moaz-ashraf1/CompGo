@@ -84,3 +84,19 @@ export const recordCaptainTransferSchema = z.object({
   note: z.string().trim().max(200).optional(),
 });
 export type RecordCaptainTransferDTO = z.infer<typeof recordCaptainTransferSchema>;
+
+/// Bulk permanent deletion (dashboard multi-select). `confirmCount` is the
+/// number the admin typed in the confirmation dialog - it must equal how many
+/// ids are being deleted, so a stale or tampered request is refused.
+export const bulkDeleteSchema = (max: number) =>
+  z
+    .object({
+      ids: z.array(z.string().uuid()).min(1).max(max),
+      confirmCount: z.number().int(),
+    })
+    .refine((d) => d.confirmCount === new Set(d.ids).size, {
+      message: "confirmCount does not match the number of ids",
+    });
+
+export const bulkDeleteTripsSchema = bulkDeleteSchema(500);
+export const bulkDeleteAccountsSchema = bulkDeleteSchema(100);
