@@ -13,6 +13,7 @@ import {
 } from "../../exceptions/captain.exceptions.js";
 import { comparePassword, hashPassword } from "../../utils/hash.js";
 import * as tripService from "../trip/trip.service.js";
+import { prisma } from "../../config/prisma.js";
 import { lockOutAccount } from "../auth/lockout.js";
 import { emitToCaptainAdmins } from "../../realtime/socket.js";
 
@@ -50,15 +51,38 @@ export const updateMe = async (
   return captainRepo.updateCaptain(captainId, data);
 };
 
-/// Derives the next date a captain's dues should be collected, and
-/// whether that date has already passed - from `settlementCycleDays`
-/// (admin-set) and `lastSettledAt` (set automatically whenever an admin
-/// resets their amountDue - see resetAmountDue below). Falls back to
-/// `createdAt` when they've never been settled yet, so a new captain's
-/// first cycle starts counting from signup. Returns nulls when no cycle
-/// is configured for this captain.
-export const withSettlementInfo = <
+const DAY_MS = 86400000;
+
+/// When the captain started owing: the later of their last settlement and
+/// their first completed trip since then (a captain settled a month ago is not
+/// late the moment they earn their first fare). Same rule the automatic block
+/// uses (see autoBlock.service.ts), so the dashboard and the block agree.
+export const owingSince = async (captain: {
+  id: string;
+  lastSettledAt: Date | null;
+  createdAt: Date;
+}) => {
+  const baseline = captain.lastSettledAt ?? captain.createdAt;
+  const firstTrip = await prisma.trip.findFirst({
+    where: {
+      captainId: captain.id,
+      status: "COMPLETED",
+      completedAt: { gt: baseline },
+    },
+    orderBy: { completedAt: "asc" },
+    select: { completedAt: true },
+  });
+  return firstTrip?.completedAt ?? baseline;
+};
+
+/// Derives the date a captain's dues should be collected by, and whether it
+/// has passed - from `settlementCycleDays` (admin-set) counted from when they
+/// started owing. A captain who owes nothing has no due date and is never
+/// late. Returns nulls when no cycle is configured.
+export const withSettlementInfo = async <
   T extends {
+    id: string;
+    amountDue: unknown;
     settlementCycleDays: number | null;
     lastSettledAt: Date | null;
     createdAt: Date;
@@ -66,12 +90,12 @@ export const withSettlementInfo = <
 >(
   captain: T,
 ) => {
-  if (captain.settlementCycleDays === null) {
+  if (captain.settlementCycleDays === null || !(Number(captain.amountDue) > 0)) {
     return { ...captain, nextSettlementDueAt: null, isSettlementOverdue: false };
   }
-  const base = captain.lastSettledAt ?? captain.createdAt;
+  const since = await owingSince(captain);
   const nextSettlementDueAt = new Date(
-    base.getTime() + captain.settlementCycleDays * 86400000,
+    since.getTime() + captain.settlementCycleDays * DAY_MS,
   );
   return {
     ...captain,
@@ -82,7 +106,7 @@ export const withSettlementInfo = <
 
 export const getAllCaptains = async () => {
   const captains = await captainRepo.findAllCaptains();
-  return captains.map(withSettlementInfo);
+  return Promise.all(captains.map((c) => withSettlementInfo(c)));
 };
 
 export const getPendingCaptains = async () => {
@@ -96,7 +120,7 @@ export const getCaptainById = async (id: string) => {
     throw new captainExceptions.CaptainNotFoundError();
   }
 
-  return withSettlementInfo(captain);
+  return await withSettlementInfo(captain);
 };
 
 export const updateSettlementCycle = async (
@@ -115,7 +139,7 @@ export const updateSettlementCycle = async (
     settlementCycleDays,
     settlementCycleDays !== null && autoBlockOnOverdue,
   );
-  return withSettlementInfo(updated);
+  return await withSettlementInfo(updated);
 };
 
 export const blockCaptain = async (id: string) => {
@@ -126,7 +150,7 @@ export const blockCaptain = async (id: string) => {
   }
 
   if (captain.status === CaptainStatus.BLOCKED) {
-    return withSettlementInfo(captain);
+    return await withSettlementInfo(captain);
   }
 
   const blocked = await captainRepo.updateCaptainStatus(
@@ -135,7 +159,7 @@ export const blockCaptain = async (id: string) => {
   );
   await lockOutAccount("CAPTAIN", id);
   emitToCaptainAdmins("captain:pending-changed", {});
-  return withSettlementInfo(blocked);
+  return await withSettlementInfo(blocked);
 };
 
 export const unblockCaptain = async (id: string) => {
@@ -146,7 +170,7 @@ export const unblockCaptain = async (id: string) => {
   }
 
   if (captain.status === CaptainStatus.ACTIVE) {
-    return withSettlementInfo(captain);
+    return await withSettlementInfo(captain);
   }
 
   // Approving a new (PENDING) captain also turns on the auto-block for late
@@ -157,7 +181,7 @@ export const unblockCaptain = async (id: string) => {
       ? await captainRepo.approvePendingCaptain(id, captain.settlementCycleDays)
       : await captainRepo.updateCaptainStatus(id, CaptainStatus.ACTIVE);
   emitToCaptainAdmins("captain:pending-changed", {});
-  return withSettlementInfo(activated);
+  return await withSettlementInfo(activated);
 };
 
 export const resetAmountDue = async (
@@ -178,7 +202,7 @@ export const resetAmountDue = async (
   if (collected > 0) {
     await captainRepo.createWalletTransaction(id, -collected, reason, "COLLECTION");
   }
-  return withSettlementInfo(updated);
+  return await withSettlementInfo(updated);
 };
 
 export const changePassword = async (

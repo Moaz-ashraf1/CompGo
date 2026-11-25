@@ -34,14 +34,8 @@ export const blockOverdueCaptains = async (now = new Date()) => {
 
   let blocked = 0;
   for (const c of candidates) {
-    const baseline = c.lastSettledAt ?? c.createdAt;
-    const firstTrip = await prisma.trip.findFirst({
-      where: { captainId: c.id, status: "COMPLETED", completedAt: { gt: baseline } },
-      orderBy: { completedAt: "asc" },
-      select: { completedAt: true },
-    });
-    const owingSince = firstTrip?.completedAt ?? baseline;
-    const deadline = new Date(owingSince.getTime() + c.settlementCycleDays! * DAY_MS);
+    const owingSinceDate = await captainService.owingSince(c);
+    const deadline = new Date(owingSinceDate.getTime() + c.settlementCycleDays! * DAY_MS);
     if (deadline.getTime() > now.getTime()) continue;
     if (c.autoBlockedAt && c.autoBlockedAt.getTime() >= deadline.getTime()) continue;
 

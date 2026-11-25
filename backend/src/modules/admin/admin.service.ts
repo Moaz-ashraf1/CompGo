@@ -151,7 +151,7 @@ export const getCaptainDetail = async (captainId: string) => {
     ]);
 
   return {
-    captain: withSettlementInfo(captain),
+    captain: await withSettlementInfo(captain),
     tripStats,
     ratingStats,
     recentTrips: trips.slice(0, 20),
